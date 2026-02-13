@@ -5,7 +5,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardCheck, ChevronRight, ChevronLeft, Trophy, BarChart3, Brain, Heart, Shield, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ClipboardCheck, ChevronRight, ChevronLeft, Trophy, BarChart3, Brain, Heart, Shield, ArrowRight, CheckCircle2, Shuffle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useXP } from "@/hooks/useXP";
@@ -32,6 +33,9 @@ interface Assessment {
 }
 
 type ViewState = "landing" | "quiz" | "results" | "history";
+type Difficulty = "easy" | "medium" | "hard" | "mixed";
+
+const QUESTIONS_PER_ASSESSMENT = 15;
 
 export default function Assessments() {
   const { user } = useAuth();
@@ -41,6 +45,7 @@ export default function Assessments() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [assessmentType, setAssessmentType] = useState<"baseline" | "post">("baseline");
+  const [difficulty, setDifficulty] = useState<Difficulty>("mixed");
   const [pastAssessments, setPastAssessments] = useState<Assessment[]>([]);
   const [latestResult, setLatestResult] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,20 +71,30 @@ export default function Assessments() {
     setLoading(false);
   }
 
-  async function startAssessment() {
-    const { data } = await supabase
+  async function startAssessment(diff: Difficulty = difficulty) {
+    let query = supabase
       .from("questions")
       .select("id, question_text, options, correct_answer, order_index, category_id")
-      .eq("assessment_type", assessmentType)
-      .order("order_index");
+      .eq("assessment_type", assessmentType);
+
+    if (diff !== "mixed") {
+      query = query.eq("difficulty", diff);
+    }
+
+    const { data } = await query;
 
     if (!data || data.length === 0) {
       toast({ title: "No questions available", description: "Please check back later.", variant: "destructive" });
       return;
     }
 
-    const parsed = data.map((q) => ({
+    // Shuffle and pick random questions
+    const shuffled = data.sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, QUESTIONS_PER_ASSESSMENT);
+
+    const parsed = selected.map((q, idx) => ({
       ...q,
+      order_index: idx + 1,
       options: typeof q.options === "string" ? JSON.parse(q.options) : (q.options as string[]),
     }));
 
@@ -90,20 +105,30 @@ export default function Assessments() {
   }
 
   function scoreAssessment(): { knowledge: number; behavior: number; confidence: number; overall: number } {
-    // Questions 1-5 = knowledge, 6-8 = behavior, 9-10 = confidence
+    // Category-based scoring using category_id
+    const budgetingId = "27baf23a-a7b8-468a-bdb5-7bfd34d5c77c";
+    const savingId = "63f6864a-2c43-47f4-af52-447a2d55cfa5";
+    const debtId = "f13b8b24-09ed-4d17-8012-c17a816fe69d";
+    const planningId = "0fc67d5e-b76a-44a4-ab3e-4a1e13c098ba";
+
     let knowledgeCorrect = 0, knowledgeTotal = 0;
     let behaviorCorrect = 0, behaviorTotal = 0;
     let confidenceCorrect = 0, confidenceTotal = 0;
 
     questions.forEach((q) => {
       const isCorrect = answers[q.id] === q.correct_answer;
-      if (q.order_index <= 5) {
+      // Knowledge: Budgeting + Saving & Investing
+      if (q.category_id === budgetingId || q.category_id === savingId) {
         knowledgeTotal++;
         if (isCorrect) knowledgeCorrect++;
-      } else if (q.order_index <= 8) {
+      }
+      // Behavior: Debt Management
+      else if (q.category_id === debtId) {
         behaviorTotal++;
         if (isCorrect) behaviorCorrect++;
-      } else {
+      }
+      // Confidence: Financial Planning
+      else if (q.category_id === planningId) {
         confidenceTotal++;
         if (isCorrect) confidenceCorrect++;
       }
@@ -177,8 +202,31 @@ export default function Assessments() {
       <div className="space-y-6">
         <div>
           <h1 className="font-display text-2xl font-bold">Assessments</h1>
-          <p className="text-muted-foreground">Test and track your financial knowledge.</p>
+          <p className="text-muted-foreground">Test and track your financial knowledge with randomized questions.</p>
         </div>
+
+        {/* Difficulty Selector */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-display text-lg flex items-center gap-2">
+              <Shuffle className="h-5 w-5 text-primary" /> Select Difficulty
+            </CardTitle>
+            <CardDescription>Each assessment picks {QUESTIONS_PER_ASSESSMENT} random questions. Different questions every time!</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mixed">🎲 Mixed (All Levels)</SelectItem>
+                <SelectItem value="easy">🟢 Easy</SelectItem>
+                <SelectItem value="medium">🟡 Medium</SelectItem>
+                <SelectItem value="hard">🔴 Hard</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-2">
           <Card className="relative overflow-hidden">
@@ -190,14 +238,10 @@ export default function Assessments() {
               <CardDescription>Measure your starting financial literacy level.</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">10 questions covering knowledge, behavior, and confidence across budgeting, saving, debt, and planning.</p>
-              {hasBaseline ? (
-                <Badge variant="secondary" className="gap-1"><CheckCircle2 className="h-3 w-3" /> Completed</Badge>
-              ) : (
-                <Button onClick={() => { setAssessmentType("baseline"); startAssessment(); }} className="gap-2">
-                  Start Baseline <ArrowRight className="h-4 w-4" />
-                </Button>
-              )}
+              <p className="text-sm text-muted-foreground mb-4">{QUESTIONS_PER_ASSESSMENT} randomized questions covering knowledge, behavior, and confidence across budgeting, saving, debt, and planning.</p>
+              <Button onClick={() => { setAssessmentType("baseline"); startAssessment(difficulty); }} variant={hasBaseline ? "outline" : "default"} className="gap-2">
+                {hasBaseline ? "Retake Baseline" : "Start Baseline"} <ArrowRight className="h-4 w-4" />
+              </Button>
             </CardContent>
           </Card>
 
@@ -214,7 +258,7 @@ export default function Assessments() {
               {!hasBaseline ? (
                 <p className="text-sm text-muted-foreground italic">Complete the baseline assessment first.</p>
               ) : (
-                <Button onClick={() => { setAssessmentType("post"); startAssessment(); }} variant={hasPost ? "outline" : "default"} className="gap-2">
+                <Button onClick={() => { setAssessmentType("post"); startAssessment(difficulty); }} variant={hasPost ? "outline" : "default"} className="gap-2">
                   {hasPost ? "Retake Post Assessment" : "Start Post Assessment"} <ArrowRight className="h-4 w-4" />
                 </Button>
               )}
