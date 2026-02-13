@@ -1,55 +1,38 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
-import { BookOpen, Eye, Heart, Clock, Search, User, Play, Video } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
+import { BookOpen, Eye, Heart, Clock, Search, User, Play, Video, Plus, Trash2, Link } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
-// --- Video Lessons Data ---
+// --- Types ---
 interface VideoLesson {
   id: string;
   title: string;
   description: string;
-  youtubeId: string;
+  youtube_id: string;
   category: string;
   duration: string;
-  difficulty: "Beginner" | "Intermediate" | "Advanced";
+  difficulty: string;
+  added_by?: string;
+  isDefault?: boolean;
 }
 
-const VIDEO_LESSONS: VideoLesson[] = [
-  // Budgeting
-  { id: "v1", title: "Budgeting Basics for Beginners", description: "Learn the fundamentals of creating and maintaining a personal budget that works.", youtubeId: "sVKQn2I4HDM", category: "Budgeting", duration: "12 min", difficulty: "Beginner" },
-  { id: "v2", title: "The 50/30/20 Budget Rule Explained", description: "Master the popular 50/30/20 budgeting framework to manage your money effectively.", youtubeId: "HQzoZfc3GwQ", category: "Budgeting", duration: "8 min", difficulty: "Beginner" },
-  { id: "v3", title: "Zero-Based Budgeting Tutorial", description: "Give every rupee a job with zero-based budgeting - a powerful method for financial control.", youtubeId: "cRV0eFf4TZA", category: "Budgeting", duration: "15 min", difficulty: "Intermediate" },
-  { id: "v4", title: "How to Track Your Expenses", description: "Practical tips for tracking daily expenses and identifying spending patterns.", youtubeId: "rJFOCLQdjTM", category: "Budgeting", duration: "10 min", difficulty: "Beginner" },
-  // Saving & Investing
-  { id: "v5", title: "How to Start Investing for Beginners", description: "A complete beginner's guide to investing in stocks, bonds, and mutual funds.", youtubeId: "gFQNPmLKj1k", category: "Saving & Investing", duration: "20 min", difficulty: "Beginner" },
-  { id: "v6", title: "Compound Interest - The 8th Wonder", description: "Understand how compound interest works and why starting early matters so much.", youtubeId: "wf91rEGw88Q", category: "Saving & Investing", duration: "10 min", difficulty: "Beginner" },
-  { id: "v7", title: "Index Funds vs Mutual Funds", description: "Compare index funds and actively managed mutual funds to make smarter investment choices.", youtubeId: "fwe-PjrX23o", category: "Saving & Investing", duration: "14 min", difficulty: "Intermediate" },
-  { id: "v8", title: "Building an Emergency Fund", description: "Step-by-step guide to building a 3-6 month emergency fund for financial security.", youtubeId: "vftPsZRAJBU", category: "Saving & Investing", duration: "11 min", difficulty: "Beginner" },
-  { id: "v9", title: "Diversification Strategy Explained", description: "Learn why diversification is key to reducing risk in your investment portfolio.", youtubeId: "KFmGJGFVpWc", category: "Saving & Investing", duration: "13 min", difficulty: "Intermediate" },
-  { id: "v10", title: "Dollar Cost Averaging (SIP) Explained", description: "How systematic investing reduces risk and builds wealth over time.", youtubeId: "TlnFkC-eaXo", category: "Saving & Investing", duration: "9 min", difficulty: "Intermediate" },
-  // Debt Management
-  { id: "v11", title: "How to Get Out of Debt Fast", description: "Proven strategies to pay off debt quickly using snowball and avalanche methods.", youtubeId: "YsJ0m_4nNnE", category: "Debt Management", duration: "16 min", difficulty: "Beginner" },
-  { id: "v12", title: "Understanding Credit Scores", description: "What makes up your credit score and how to improve it over time.", youtubeId: "01AqFE_we8Y", category: "Debt Management", duration: "12 min", difficulty: "Beginner" },
-  { id: "v13", title: "Good Debt vs Bad Debt", description: "Not all debt is created equal. Learn to distinguish between debt that builds wealth and debt that destroys it.", youtubeId: "Yznk1m9bciM", category: "Debt Management", duration: "10 min", difficulty: "Beginner" },
-  { id: "v14", title: "Credit Card Mistakes to Avoid", description: "Common credit card traps and how to use credit cards wisely to your advantage.", youtubeId: "nPBPE_b22Yg", category: "Debt Management", duration: "11 min", difficulty: "Intermediate" },
-  // Financial Planning
-  { id: "v15", title: "Financial Planning 101", description: "Create a comprehensive financial plan covering goals, insurance, investments, and retirement.", youtubeId: "4j2emMn7UaI", category: "Financial Planning", duration: "18 min", difficulty: "Beginner" },
-  { id: "v16", title: "Retirement Planning for Young Adults", description: "Why starting retirement planning in your 20s can make you a millionaire.", youtubeId: "bnGK-tBp3Kk", category: "Financial Planning", duration: "14 min", difficulty: "Intermediate" },
-  { id: "v17", title: "Understanding Insurance Basics", description: "Health, life, and property insurance explained simply for better financial protection.", youtubeId: "ReFktTqjMlU", category: "Financial Planning", duration: "15 min", difficulty: "Beginner" },
-  { id: "v18", title: "Setting SMART Financial Goals", description: "How to set Specific, Measurable, Achievable, Relevant, and Time-bound financial goals.", youtubeId: "i0QfCZjASX8", category: "Financial Planning", duration: "9 min", difficulty: "Beginner" },
-  { id: "v19", title: "Islamic Finance Basics", description: "Understanding Shariah-compliant finance including sukuk, takaful, and profit-sharing models.", youtubeId: "TcNtdVOegHY", category: "Financial Planning", duration: "17 min", difficulty: "Intermediate" },
-  { id: "v20", title: "Tax Planning Strategies", description: "Legal ways to minimize your tax liability and keep more of your hard-earned money.", youtubeId: "JdTmRsEDJH0", category: "Financial Planning", duration: "13 min", difficulty: "Advanced" },
-];
-
-// --- Article types ---
 interface ContentItem {
   id: string;
   title: string;
@@ -61,8 +44,35 @@ interface ContentItem {
   author_id: string;
 }
 
+// Default videos (shown when DB has none or as fallback)
+const DEFAULT_VIDEOS: VideoLesson[] = [
+  { id: "d1", title: "Budgeting Basics for Beginners", description: "Learn the fundamentals of creating and maintaining a personal budget.", youtube_id: "sVKQn2I4HDM", category: "Budgeting", duration: "12 min", difficulty: "Beginner", isDefault: true },
+  { id: "d2", title: "The 50/30/20 Budget Rule Explained", description: "Master the popular 50/30/20 budgeting framework.", youtube_id: "HQzoZfc3GwQ", category: "Budgeting", duration: "8 min", difficulty: "Beginner", isDefault: true },
+  { id: "d3", title: "How to Start Investing for Beginners", description: "A complete beginner's guide to investing.", youtube_id: "gFQNPmLKj1k", category: "Saving & Investing", duration: "20 min", difficulty: "Beginner", isDefault: true },
+  { id: "d4", title: "Compound Interest - The 8th Wonder", description: "Understand how compound interest works.", youtube_id: "wf91rEGw88Q", category: "Saving & Investing", duration: "10 min", difficulty: "Beginner", isDefault: true },
+  { id: "d5", title: "How to Get Out of Debt Fast", description: "Proven strategies to pay off debt quickly.", youtube_id: "YsJ0m_4nNnE", category: "Debt Management", duration: "16 min", difficulty: "Beginner", isDefault: true },
+  { id: "d6", title: "Understanding Credit Scores", description: "What makes up your credit score and how to improve it.", youtube_id: "01AqFE_we8Y", category: "Debt Management", duration: "12 min", difficulty: "Beginner", isDefault: true },
+  { id: "d7", title: "Financial Planning 101", description: "Create a comprehensive financial plan.", youtube_id: "4j2emMn7UaI", category: "Financial Planning", duration: "18 min", difficulty: "Beginner", isDefault: true },
+  { id: "d8", title: "Islamic Finance Basics", description: "Understanding Shariah-compliant finance.", youtube_id: "TcNtdVOegHY", category: "Financial Planning", duration: "17 min", difficulty: "Intermediate", isDefault: true },
+];
+
+function extractYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 export default function Learn() {
   const { user } = useAuth();
+  const { isAdmin, isExpert } = useUserRole();
+  const canManage = isAdmin || isExpert;
+
   const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -70,13 +80,52 @@ export default function Learn() {
   const [selectedArticle, setSelectedArticle] = useState<ContentItem | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [authorNames, setAuthorNames] = useState<Record<string, string>>({});
+
+  // Video state
+  const [dbVideos, setDbVideos] = useState<VideoLesson[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<VideoLesson | null>(null);
   const [videoCategory, setVideoCategory] = useState<string | null>(null);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+
+  // Add video form
+  const [newUrl, setNewUrl] = useState("");
+  const [newTitle, setNewTitle] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newCategory, setNewCategory] = useState("Budgeting");
+  const [newDuration, setNewDuration] = useState("");
+  const [newDifficulty, setNewDifficulty] = useState("Beginner");
+  const [parsedId, setParsedId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadContent();
+    loadVideos();
     if (user) loadLikes();
   }, [user]);
+
+  // Auto-parse YouTube URL
+  useEffect(() => {
+    const id = extractYouTubeId(newUrl);
+    setParsedId(id);
+  }, [newUrl]);
+
+  async function loadVideos() {
+    const { data } = await supabase
+      .from("video_lessons")
+      .select("*")
+      .order("created_at", { ascending: false });
+    const vids = (data ?? []).map((v: any) => ({
+      id: v.id,
+      title: v.title,
+      description: v.description,
+      youtube_id: v.youtube_id,
+      category: v.category,
+      duration: v.duration,
+      difficulty: v.difficulty,
+      added_by: v.added_by,
+    }));
+    setDbVideos(vids);
+  }
 
   async function loadContent() {
     setLoading(true);
@@ -117,7 +166,6 @@ export default function Learn() {
   async function toggleLike(articleId: string) {
     if (!user) return;
     const isLiked = likedIds.has(articleId);
-
     if (isLiked) {
       await supabase.from("content_likes").delete().eq("user_id", user.id).eq("content_id", articleId);
       setLikedIds((prev) => { const s = new Set(prev); s.delete(articleId); return s; });
@@ -131,16 +179,64 @@ export default function Learn() {
     }
   }
 
-  const categories = [...new Set(content.map((c) => c.category).filter(Boolean))] as string[];
-  const videoCategories = [...new Set(VIDEO_LESSONS.map((v) => v.category))];
+  async function handleAddVideo() {
+    if (!parsedId || !newTitle.trim() || !user) return;
+    setSaving(true);
 
+    const { error } = await supabase.from("video_lessons").insert({
+      title: newTitle.trim(),
+      description: newDesc.trim(),
+      youtube_url: newUrl.trim(),
+      youtube_id: parsedId,
+      category: newCategory,
+      duration: newDuration.trim() || "Unknown",
+      difficulty: newDifficulty,
+      added_by: user.id,
+    });
+
+    if (error) {
+      toast({ title: "Error adding video", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Video added!", description: "The video lesson has been added successfully." });
+      resetForm();
+      setShowAddDialog(false);
+      await loadVideos();
+    }
+    setSaving(false);
+  }
+
+  async function handleDeleteVideo(videoId: string) {
+    const { error } = await supabase.from("video_lessons").delete().eq("id", videoId);
+    if (error) {
+      toast({ title: "Error deleting video", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Video removed" });
+      setSelectedVideo(null);
+      await loadVideos();
+    }
+  }
+
+  function resetForm() {
+    setNewUrl("");
+    setNewTitle("");
+    setNewDesc("");
+    setNewCategory("Budgeting");
+    setNewDuration("");
+    setNewDifficulty("Beginner");
+    setParsedId(null);
+  }
+
+  // Combine DB videos with defaults (DB videos first)
+  const allVideos: VideoLesson[] = [...dbVideos, ...DEFAULT_VIDEOS];
+  const videoCategories = [...new Set(allVideos.map((v) => v.category))];
+  const filteredVideos = allVideos.filter((v) => !videoCategory || v.category === videoCategory);
+
+  const categories = [...new Set(content.map((c) => c.category).filter(Boolean))] as string[];
   const filtered = content.filter((item) => {
     const matchesSearch = !search || item.title.toLowerCase().includes(search.toLowerCase()) || item.body.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = !selectedCategory || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
-
-  const filteredVideos = VIDEO_LESSONS.filter((v) => !videoCategory || v.category === videoCategory);
 
   if (loading) {
     return <div className="flex items-center justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
@@ -161,23 +257,49 @@ export default function Learn() {
 
         {/* --- Video Lessons Tab --- */}
         <TabsContent value="videos" className="space-y-4">
-          <div className="flex gap-2 flex-wrap">
-            <Button variant={videoCategory === null ? "default" : "outline"} size="sm" onClick={() => setVideoCategory(null)}>All</Button>
-            {videoCategories.map((cat) => (
-              <Button key={cat} variant={videoCategory === cat ? "default" : "outline"} size="sm" onClick={() => setVideoCategory(cat)}>{cat}</Button>
-            ))}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex gap-2 flex-wrap">
+              <Button variant={videoCategory === null ? "default" : "outline"} size="sm" onClick={() => setVideoCategory(null)}>All</Button>
+              {videoCategories.map((cat) => (
+                <Button key={cat} variant={videoCategory === cat ? "default" : "outline"} size="sm" onClick={() => setVideoCategory(cat)}>{cat}</Button>
+              ))}
+            </div>
+            {canManage && (
+              <Button size="sm" onClick={() => setShowAddDialog(true)} className="gap-1.5">
+                <Plus className="h-4 w-4" /> Add Video
+              </Button>
+            )}
           </div>
 
           {selectedVideo ? (
             <div className="space-y-4">
-              <Button variant="ghost" size="sm" onClick={() => setSelectedVideo(null)} className="text-muted-foreground gap-1">
-                ← Back to Videos
-              </Button>
+              <div className="flex items-center justify-between">
+                <Button variant="ghost" size="sm" onClick={() => setSelectedVideo(null)} className="text-muted-foreground gap-1">
+                  ← Back to Videos
+                </Button>
+                {canManage && !selectedVideo.isDefault && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm" className="gap-1"><Trash2 className="h-4 w-4" /> Remove</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove this video?</AlertDialogTitle>
+                        <AlertDialogDescription>This will permanently remove "{selectedVideo.title}" from the video lessons.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteVideo(selectedVideo.id)}>Remove</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
               <Card>
                 <CardContent className="pt-6">
                   <div className="aspect-video w-full rounded-lg overflow-hidden bg-black">
                     <iframe
-                      src={`https://www.youtube.com/embed/${selectedVideo.youtubeId}?rel=0`}
+                      src={`https://www.youtube.com/embed/${selectedVideo.youtube_id}?rel=0`}
                       title={selectedVideo.title}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -188,7 +310,9 @@ export default function Learn() {
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="secondary">{selectedVideo.category}</Badge>
                       <Badge variant="outline">{selectedVideo.difficulty}</Badge>
-                      <span className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {selectedVideo.duration}</span>
+                      {selectedVideo.duration && (
+                        <span className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {selectedVideo.duration}</span>
+                      )}
                     </div>
                     <h2 className="font-display text-xl font-bold">{selectedVideo.title}</h2>
                     <p className="text-muted-foreground mt-1">{selectedVideo.description}</p>
@@ -199,11 +323,20 @@ export default function Learn() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredVideos.map((video) => (
-                <Card key={video.id} className="cursor-pointer hover:shadow-md transition-shadow group" onClick={() => setSelectedVideo(video)}>
+                <Card key={video.id} className="cursor-pointer hover:shadow-md transition-shadow group relative" onClick={() => setSelectedVideo(video)}>
+                  {canManage && !video.isDefault && (
+                    <button
+                      className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-destructive/90 text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => { e.stopPropagation(); handleDeleteVideo(video.id); }}
+                      title="Remove video"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                   <CardContent className="pt-4">
                     <div className="aspect-video w-full rounded-lg overflow-hidden bg-muted relative">
                       <img
-                        src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+                        src={`https://img.youtube.com/vi/${video.youtube_id}/mqdefault.jpg`}
                         alt={video.title}
                         className="w-full h-full object-cover"
                       />
@@ -212,9 +345,11 @@ export default function Learn() {
                           <Play className="h-5 w-5 text-primary-foreground ml-0.5" />
                         </div>
                       </div>
-                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
-                        {video.duration}
-                      </div>
+                      {video.duration && (
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
+                          {video.duration}
+                        </div>
+                      )}
                     </div>
                     <div className="mt-3">
                       <h3 className="font-display text-sm font-semibold leading-tight line-clamp-2">{video.title}</h3>
@@ -321,6 +456,100 @@ export default function Learn() {
             </div>
           </DialogContent>
         )}
+      </Dialog>
+
+      {/* Add Video Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={(open) => { if (!open) { resetForm(); } setShowAddDialog(open); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display">Add Video Lesson</DialogTitle>
+            <DialogDescription>Paste a YouTube URL and fill in the details. The video will be embedded automatically.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* YouTube URL */}
+            <div className="space-y-2">
+              <Label htmlFor="yt-url">YouTube URL *</Label>
+              <div className="relative">
+                <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="yt-url"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              {newUrl && !parsedId && (
+                <p className="text-xs text-destructive">Could not extract YouTube video ID. Please check the URL.</p>
+              )}
+              {parsedId && (
+                <div className="aspect-video w-full max-w-[300px] rounded-lg overflow-hidden bg-muted">
+                  <img
+                    src={`https://img.youtube.com/vi/${parsedId}/mqdefault.jpg`}
+                    alt="Video preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Title */}
+            <div className="space-y-2">
+              <Label htmlFor="v-title">Title *</Label>
+              <Input id="v-title" placeholder="Video title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} maxLength={200} />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="v-desc">Description</Label>
+              <Textarea id="v-desc" placeholder="Brief description..." value={newDesc} onChange={(e) => setNewDesc(e.target.value)} maxLength={500} rows={2} />
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {/* Category */}
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select value={newCategory} onValueChange={setNewCategory}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Budgeting">Budgeting</SelectItem>
+                    <SelectItem value="Saving & Investing">Saving & Investing</SelectItem>
+                    <SelectItem value="Debt Management">Debt Management</SelectItem>
+                    <SelectItem value="Financial Planning">Financial Planning</SelectItem>
+                    <SelectItem value="General">General</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Difficulty */}
+              <div className="space-y-2">
+                <Label>Difficulty</Label>
+                <Select value={newDifficulty} onValueChange={setNewDifficulty}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Beginner">Beginner</SelectItem>
+                    <SelectItem value="Intermediate">Intermediate</SelectItem>
+                    <SelectItem value="Advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Duration */}
+              <div className="space-y-2">
+                <Label htmlFor="v-dur">Duration</Label>
+                <Input id="v-dur" placeholder="e.g. 15 min" value={newDuration} onChange={(e) => setNewDuration(e.target.value)} maxLength={20} />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { resetForm(); setShowAddDialog(false); }}>Cancel</Button>
+            <Button onClick={handleAddVideo} disabled={!parsedId || !newTitle.trim() || saving}>
+              {saving ? "Adding..." : "Add Video"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );
