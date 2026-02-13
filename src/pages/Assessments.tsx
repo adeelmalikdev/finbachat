@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ClipboardCheck, ChevronRight, ChevronLeft, Trophy, BarChart3, Brain, Heart, Shield, ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useXP } from "@/hooks/useXP";
 import { toast } from "@/hooks/use-toast";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -34,6 +35,7 @@ type ViewState = "landing" | "quiz" | "results" | "history";
 
 export default function Assessments() {
   const { user } = useAuth();
+  const { awardXP } = useXP();
   const [view, setView] = useState<ViewState>("landing");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -149,6 +151,8 @@ export default function Assessments() {
     setLatestResult(data as Assessment);
     setView("results");
     setSubmitting(false);
+    await awardXP("assessment_complete", `${assessmentType} assessment (Score: ${scores.overall}%)`);
+    toast({ title: "+100 XP!", description: "You earned XP for completing an assessment." });
     await loadAssessments();
   }
 

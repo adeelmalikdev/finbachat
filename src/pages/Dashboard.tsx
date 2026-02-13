@@ -17,26 +17,41 @@ interface Profile {
   display_name: string | null;
 }
 
+interface BadgeInfo {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  xp_required: number;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [allBadges, setAllBadges] = useState<BadgeInfo[]>([]);
 
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      const [{ data: prog }, { data: prof }] = await Promise.all([
-        supabase.from("user_progress").select("*").eq("user_id", user.id).single(),
-        supabase.from("profiles").select("display_name").eq("id", user.id).single(),
+      const [{ data: prog }, { data: prof }, { data: badges }] = await Promise.all([
+        supabase.from("user_progress").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+        supabase.from("badges").select("*").order("xp_required"),
       ]);
       setProgress(prog);
       setProfile(prof);
+      setAllBadges((badges ?? []) as BadgeInfo[]);
     };
     load();
   }, [user]);
 
   const xpForNextLevel = (progress?.level ?? 1) * 500;
   const xpProgress = progress ? Math.min((progress.xp / xpForNextLevel) * 100, 100) : 0;
+
+  const earnedBadgeIds = new Set(progress?.badges_earned ?? []);
+  const earnedBadges = allBadges.filter((b) => earnedBadgeIds.has(b.id));
+  const lockedBadges = allBadges.filter((b) => !earnedBadgeIds.has(b.id));
 
   return (
     <div className="space-y-6">
@@ -48,34 +63,10 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={Zap}
-          label="XP"
-          value={`${progress?.xp ?? 0}`}
-          sub={`Level ${progress?.level ?? 1}`}
-          color="text-primary"
-        />
-        <StatCard
-          icon={TrendingUp}
-          label="Health Score"
-          value={`${progress?.financial_health_score ?? 0}%`}
-          sub="Financial Health"
-          color="text-accent"
-        />
-        <StatCard
-          icon={Award}
-          label="Badges"
-          value={`${progress?.badges_earned?.length ?? 0}`}
-          sub="Earned"
-          color="text-warning"
-        />
-        <StatCard
-          icon={Target}
-          label="Level Progress"
-          value={`${Math.round(xpProgress)}%`}
-          sub={`${progress?.xp ?? 0} / ${xpForNextLevel} XP`}
-          color="text-info"
-        />
+        <StatCard icon={Zap} label="XP" value={`${progress?.xp ?? 0}`} sub={`Level ${progress?.level ?? 1}`} color="text-primary" />
+        <StatCard icon={TrendingUp} label="Health Score" value={`${progress?.financial_health_score ?? 0}%`} sub="Financial Health" color="text-accent" />
+        <StatCard icon={Award} label="Badges" value={`${earnedBadges.length}`} sub={`of ${allBadges.length}`} color="text-warning" />
+        <StatCard icon={Target} label="Level Progress" value={`${Math.round(xpProgress)}%`} sub={`${progress?.xp ?? 0} / ${xpForNextLevel} XP`} color="text-info" />
       </div>
 
       <Card>
@@ -108,15 +99,26 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle className="font-display text-lg">Badges</CardTitle>
           </CardHeader>
-          <CardContent>
-            {progress?.badges_earned && progress.badges_earned.length > 0 ? (
+          <CardContent className="space-y-3">
+            {earnedBadges.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {progress.badges_earned.map((b) => (
-                  <Badge key={b} variant="secondary">{b}</Badge>
+                {earnedBadges.map((b) => (
+                  <Badge key={b.id} variant="default" className="gap-1 text-sm">
+                    {b.icon} {b.name}
+                  </Badge>
                 ))}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">Complete activities to earn badges!</p>
+            )}
+            {lockedBadges.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {lockedBadges.map((b) => (
+                  <Badge key={b.id} variant="outline" className="gap-1 text-sm opacity-50">
+                    {b.icon} {b.name} ({b.xp_required} XP)
+                  </Badge>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>

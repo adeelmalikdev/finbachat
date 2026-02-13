@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useXP } from "@/hooks/useXP";
 import { toast } from "@/hooks/use-toast";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -213,6 +214,7 @@ type ViewState = "catalog" | "playing" | "result";
 
 export default function Simulations() {
   const { user } = useAuth();
+  const { awardXP } = useXP();
   const [view, setView] = useState<ViewState>("catalog");
   const [activeScenario, setActiveScenario] = useState<Scenario | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
@@ -297,6 +299,8 @@ export default function Simulations() {
     setLatestResult({ score: pct, total: maxScore, insights });
     setView("result");
     setSubmitting(false);
+    await awardXP("simulation_complete", `${activeScenario.title} (Score: ${pct}%)`);
+    toast({ title: "+75 XP!", description: "You earned XP for completing a simulation." });
     await loadSessions();
   }
 
