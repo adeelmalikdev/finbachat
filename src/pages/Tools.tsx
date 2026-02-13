@@ -563,10 +563,10 @@ function RiskProfile({ userId, onBack, onXP }: { userId?: string; onBack: () => 
           <CardContent>
             <RadioGroup value={answers[qi]?.toString() ?? ""} onValueChange={(v) => setAnswers((prev) => ({ ...prev, [qi]: Number(v) }))}>
               {rq.options.map((opt, oi) => (
-                <div key={oi} className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer">
+                <label key={oi} htmlFor={`rq${qi}-${oi}`} className="flex items-center space-x-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer">
                   <RadioGroupItem value={oi.toString()} id={`rq${qi}-${oi}`} />
-                  <Label htmlFor={`rq${qi}-${oi}`} className="flex-1 cursor-pointer text-sm">{opt}</Label>
-                </div>
+                  <span className="flex-1 text-sm">{opt}</span>
+                </label>
               ))}
             </RadioGroup>
           </CardContent>
