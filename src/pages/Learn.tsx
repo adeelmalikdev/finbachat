@@ -160,7 +160,7 @@ export default function Learn() {
 
   async function openArticle(item: ContentItem) {
     setSelectedArticle(item);
-    await supabase.from("expert_content").update({ views_count: item.views_count + 1 }).eq("id", item.id);
+    await supabase.rpc("increment_views", { _content_id: item.id });
     setContent((prev) => prev.map((c) => c.id === item.id ? { ...c, views_count: c.views_count + 1 } : c));
   }
 
@@ -170,12 +170,12 @@ export default function Learn() {
     if (isLiked) {
       await supabase.from("content_likes").delete().eq("user_id", user.id).eq("content_id", articleId);
       setLikedIds((prev) => { const s = new Set(prev); s.delete(articleId); return s; });
-      await supabase.from("expert_content").update({ likes_count: Math.max(0, (content.find((c) => c.id === articleId)?.likes_count ?? 1) - 1) }).eq("id", articleId);
+      await supabase.rpc("decrement_likes", { _content_id: articleId });
       setContent((prev) => prev.map((c) => c.id === articleId ? { ...c, likes_count: Math.max(0, c.likes_count - 1) } : c));
     } else {
       await supabase.from("content_likes").insert({ user_id: user.id, content_id: articleId });
       setLikedIds((prev) => new Set(prev).add(articleId));
-      await supabase.from("expert_content").update({ likes_count: (content.find((c) => c.id === articleId)?.likes_count ?? 0) + 1 }).eq("id", articleId);
+      await supabase.rpc("increment_likes", { _content_id: articleId });
       setContent((prev) => prev.map((c) => c.id === articleId ? { ...c, likes_count: c.likes_count + 1 } : c));
     }
   }
