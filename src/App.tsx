@@ -17,7 +17,6 @@ import Settings from "@/pages/Settings";
 import ExpertContent from "@/pages/ExpertContent";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminModeration from "@/pages/AdminModeration";
-import BudgetSimulator from "@/pages/BudgetSimulator";
 import Leaderboard from "@/pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 
@@ -40,7 +39,6 @@ const App = () => (
               <Route path="/tools" element={<Tools />} />
               <Route path="/learn" element={<Learn />} />
               <Route path="/notifications" element={<Notifications />} />
-              <Route path="/budget-simulator" element={<BudgetSimulator />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/expert/content" element={<ProtectedRoute requiredRoles={["expert", "admin"]}><ExpertContent /></ProtectedRoute>} />

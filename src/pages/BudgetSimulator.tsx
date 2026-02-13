@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
-  Wallet, Play, DollarSign, TrendingUp, ArrowRight, AlertTriangle,
+  Wallet, Play, TrendingUp, ArrowRight, AlertTriangle,
   Gift, Zap, BarChart3, CheckCircle2, RotateCcw, Calendar
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,24 +19,24 @@ import type { Json } from "@/integrations/supabase/types";
 interface LifeEvent {
   name: string;
   description: string;
-  impact: number; // negative = cost, positive = windfall
+  impact: number;
   category: "expense" | "windfall" | "neutral";
-  weight: number; // probability weight
+  weight: number;
 }
 
 const LIFE_EVENTS: LifeEvent[] = [
-  { name: "Car Repair", description: "Unexpected car trouble costs you", impact: -500, category: "expense", weight: 15 },
-  { name: "Medical Bill", description: "An unplanned doctor visit", impact: -300, category: "expense", weight: 12 },
-  { name: "Phone Broke", description: "Your phone screen shattered", impact: -200, category: "expense", weight: 10 },
-  { name: "Rent Increase", description: "Landlord raised the rent this month", impact: -150, category: "expense", weight: 8 },
-  { name: "Freelance Gig", description: "You picked up a side project!", impact: 400, category: "windfall", weight: 10 },
-  { name: "Tax Refund", description: "Your tax refund arrived!", impact: 800, category: "windfall", weight: 5 },
-  { name: "Birthday Gift", description: "A relative sent you money", impact: 200, category: "windfall", weight: 8 },
-  { name: "Utility Spike", description: "Higher than usual utility bill", impact: -100, category: "expense", weight: 12 },
-  { name: "Grocery Sale", description: "Great deals on groceries this month", impact: 50, category: "windfall", weight: 10 },
+  { name: "Car Repair", description: "Unexpected car trouble costs you", impact: -15000, category: "expense", weight: 15 },
+  { name: "Medical Bill", description: "An unplanned doctor visit", impact: -9000, category: "expense", weight: 12 },
+  { name: "Phone Broke", description: "Your phone screen shattered", impact: -6000, category: "expense", weight: 10 },
+  { name: "Rent Increase", description: "Landlord raised the rent this month", impact: -4500, category: "expense", weight: 8 },
+  { name: "Freelance Gig", description: "You picked up a side project!", impact: 12000, category: "windfall", weight: 10 },
+  { name: "Tax Refund", description: "Your tax refund arrived!", impact: 24000, category: "windfall", weight: 5 },
+  { name: "Birthday Gift", description: "A relative sent you money", impact: 6000, category: "windfall", weight: 8 },
+  { name: "Utility Spike", description: "Higher than usual utility bill", impact: -3000, category: "expense", weight: 12 },
+  { name: "Grocery Sale", description: "Great deals on groceries this month", impact: 1500, category: "windfall", weight: 10 },
   { name: "Nothing Special", description: "A quiet, uneventful month", impact: 0, category: "neutral", weight: 20 },
-  { name: "Pet Emergency", description: "Your pet needed vet care", impact: -400, category: "expense", weight: 6 },
-  { name: "Bonus at Work", description: "Your boss gave you a small bonus!", impact: 500, category: "windfall", weight: 4 },
+  { name: "Pet Emergency", description: "Your pet needed vet care", impact: -12000, category: "expense", weight: 6 },
+  { name: "Bonus at Work", description: "Your boss gave you a small bonus!", impact: 15000, category: "windfall", weight: 4 },
 ];
 
 function drawLifeEvent(): LifeEvent {
@@ -49,7 +49,6 @@ function drawLifeEvent(): LifeEvent {
   return LIFE_EVENTS[LIFE_EVENTS.length - 1];
 }
 
-// --- Categories ---
 const CATEGORIES = ["Needs", "Wants", "Savings", "Investments", "Donations"] as const;
 type Category = typeof CATEGORIES[number];
 
@@ -78,11 +77,15 @@ const TOTAL_MONTHS = 12;
 
 type ViewState = "menu" | "setup" | "playing" | "result";
 
+function formatRs(amount: number): string {
+  return `Rs ${amount.toLocaleString()}`;
+}
+
 export default function BudgetSimulator() {
   const { user } = useAuth();
   const { awardXP } = useXP();
   const [view, setView] = useState<ViewState>("menu");
-  const [income, setIncome] = useState(4000);
+  const [income, setIncome] = useState(120000);
   const [balance, setBalance] = useState(0);
   const [savingsTotal, setSavingsTotal] = useState(0);
   const [currentMonth, setCurrentMonth] = useState(1);
@@ -148,25 +151,22 @@ export default function BudgetSimulator() {
       return;
     }
 
-    // Draw a life event
     const event = drawLifeEvent();
     setLifeEvent(event);
     setShowEvent(true);
 
-    // Calculate
     const balanceBefore = balance + income;
     const spent = allocations.Needs + allocations.Wants + (allocations.Donations || 0);
     const saved = allocations.Savings + allocations.Investments;
     const balanceAfter = balanceBefore - spent + event.impact;
     const newSavingsTotal = savingsTotal + saved;
 
-    // XP: base 20 + bonus for good behavior
     const savingsRatio = income > 0 ? saved / income : 0;
     let monthXP = 20;
-    if (savingsRatio >= 0.2) monthXP += 15; // saved 20%+
-    if (savingsRatio >= 0.3) monthXP += 10; // saved 30%+
-    if (allocations.Needs / income <= 0.5) monthXP += 5; // needs under 50%
-    if (allocations.Donations > 0) monthXP += 5; // donated
+    if (savingsRatio >= 0.2) monthXP += 15;
+    if (savingsRatio >= 0.3) monthXP += 10;
+    if (allocations.Needs / income <= 0.5) monthXP += 5;
+    if (allocations.Donations > 0) monthXP += 5;
 
     const record: MonthRecord = {
       month: currentMonth,
@@ -183,7 +183,6 @@ export default function BudgetSimulator() {
     setSavingsTotal(newSavingsTotal);
     setTotalXP((prev) => prev + monthXP);
 
-    // Save month to DB
     await supabase.from("budget_sim_months").insert({
       session_id: sessionId,
       user_id: user.id,
@@ -210,7 +209,6 @@ export default function BudgetSimulator() {
   function classifyBehavior(history: MonthRecord[]): string {
     if (history.length === 0) return "Unknown";
     const avgSavingsRatio = history.reduce((s, m) => s + (m.allocations.Savings + m.allocations.Investments) / income, 0) / history.length;
-    const avgNeedsRatio = history.reduce((s, m) => s + m.allocations.Needs / income, 0) / history.length;
     const avgWantsRatio = history.reduce((s, m) => s + m.allocations.Wants / income, 0) / history.length;
     const investRatio = history.reduce((s, m) => s + m.allocations.Investments / income, 0) / history.length;
 
@@ -232,10 +230,8 @@ export default function BudgetSimulator() {
       completed_at: new Date().toISOString(),
     }).eq("id", sessionId);
 
-    // Update user progress behavior type
     await supabase.from("user_progress").update({ behavior_type: behaviorType }).eq("user_id", user.id);
 
-    // Award XP
     await awardXP("simulation_complete", `Budget Simulator (${totalXP} XP earned)`);
     toast({ title: `+${totalXP} XP!`, description: `Simulation complete! You're a "${behaviorType}".` });
 
@@ -247,16 +243,11 @@ export default function BudgetSimulator() {
   if (view === "menu") {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Budget Simulator</h1>
-          <p className="text-muted-foreground">Manage your monthly budget through 12 months of life events and decisions.</p>
-        </div>
-
         <Card className="relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full" />
           <CardHeader>
             <CardTitle className="font-display text-lg flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-primary" /> New Simulation
+              <Wallet className="h-5 w-5 text-primary" /> New Budget Simulation
             </CardTitle>
             <CardDescription>Set your monthly income and navigate 12 months of financial decisions and surprises.</CardDescription>
           </CardHeader>
@@ -279,7 +270,7 @@ export default function BudgetSimulator() {
                     <Badge variant={s.status === "completed" ? "default" : "secondary"}>
                       {s.status === "completed" ? "Completed" : `Month ${s.current_month}`}
                     </Badge>
-                    <span className="text-sm">${s.monthly_income.toLocaleString()}/mo</span>
+                    <span className="text-sm">{formatRs(s.monthly_income)}/mo</span>
                     {s.behavior_type && <Badge variant="outline">{s.behavior_type}</Badge>}
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -300,20 +291,20 @@ export default function BudgetSimulator() {
     return (
       <div className="max-w-md mx-auto space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold">Set Your Income</h1>
+          <h2 className="font-display text-2xl font-bold">Set Your Income</h2>
           <p className="text-muted-foreground">Choose your monthly take-home pay for the simulation.</p>
         </div>
         <Card>
           <CardContent className="pt-6 space-y-4">
             <div>
-              <Label>Monthly Income ($)</Label>
-              <Input type="number" value={income} onChange={(e) => setIncome(Number(e.target.value))} min={1000} max={50000} />
-              <p className="text-xs text-muted-foreground mt-1">Recommended: $3,000 – $8,000</p>
+              <Label>Monthly Income (Rs)</Label>
+              <Input type="number" value={income} onChange={(e) => setIncome(Number(e.target.value))} min={30000} max={1500000} />
+              <p className="text-xs text-muted-foreground mt-1">Recommended: Rs 80,000 – Rs 250,000</p>
             </div>
           </CardContent>
           <CardFooter className="gap-2">
             <Button variant="outline" onClick={() => setView("menu")}>Back</Button>
-            <Button onClick={startGame} disabled={income < 1000} className="gap-2">
+            <Button onClick={startGame} disabled={income < 30000} className="gap-2">
               Start Simulation <ArrowRight className="h-4 w-4" />
             </Button>
           </CardFooter>
@@ -347,7 +338,7 @@ export default function BudgetSimulator() {
                 <h3 className="font-display font-bold text-lg">{lifeEvent.name}</h3>
                 <p className="text-sm text-muted-foreground">{lifeEvent.description}</p>
                 <p className={`text-2xl font-bold mt-2 ${lifeEvent.impact >= 0 ? "text-green-600" : "text-destructive"}`}>
-                  {lifeEvent.impact >= 0 ? "+" : ""}${lifeEvent.impact.toLocaleString()}
+                  {lifeEvent.impact >= 0 ? "+" : ""}{formatRs(lifeEvent.impact)}
                 </p>
               </div>
               {latestMonth && (
@@ -355,12 +346,12 @@ export default function BudgetSimulator() {
                   <div>
                     <p className="text-xs text-muted-foreground">Balance</p>
                     <p className={`font-bold ${latestMonth.balanceAfter >= 0 ? "" : "text-destructive"}`}>
-                      ${latestMonth.balanceAfter.toLocaleString()}
+                      {formatRs(latestMonth.balanceAfter)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Total Saved</p>
-                    <p className="font-bold text-green-600">${latestMonth.savingsTotal.toLocaleString()}</p>
+                    <p className="font-bold text-green-600">{formatRs(latestMonth.savingsTotal)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">XP Earned</p>
@@ -388,18 +379,18 @@ export default function BudgetSimulator() {
         <Progress value={progressPct} className="h-2" />
 
         <div className="grid grid-cols-3 gap-3">
-          <Card><CardContent className="pt-4 text-center"><p className="text-xs text-muted-foreground">Income</p><p className="font-bold text-lg">${income.toLocaleString()}</p></CardContent></Card>
-          <Card><CardContent className="pt-4 text-center"><p className="text-xs text-muted-foreground">Balance</p><p className={`font-bold text-lg ${balance < 0 ? "text-destructive" : ""}`}>${balance.toLocaleString()}</p></CardContent></Card>
-          <Card><CardContent className="pt-4 text-center"><p className="text-xs text-muted-foreground">Saved</p><p className="font-bold text-lg text-green-600">${savingsTotal.toLocaleString()}</p></CardContent></Card>
+          <Card><CardContent className="pt-4 text-center"><p className="text-xs text-muted-foreground">Income</p><p className="font-bold text-lg">{formatRs(income)}</p></CardContent></Card>
+          <Card><CardContent className="pt-4 text-center"><p className="text-xs text-muted-foreground">Balance</p><p className={`font-bold text-lg ${balance < 0 ? "text-destructive" : ""}`}>{formatRs(balance)}</p></CardContent></Card>
+          <Card><CardContent className="pt-4 text-center"><p className="text-xs text-muted-foreground">Saved</p><p className="font-bold text-lg text-green-600">{formatRs(savingsTotal)}</p></CardContent></Card>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-primary" /> Allocate Your Income
+              Allocate Your Income
             </CardTitle>
             <CardDescription>
-              Remaining: <span className={rem < 0 ? "text-destructive font-bold" : "font-semibold"}>${rem.toLocaleString()}</span>
+              Remaining: <span className={rem < 0 ? "text-destructive font-bold" : "font-semibold"}>{formatRs(rem)}</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -437,10 +428,10 @@ export default function BudgetSimulator() {
                     <div className="flex items-center gap-3">
                       {m.lifeEvent && m.lifeEvent.impact !== 0 && (
                         <span className={m.lifeEvent.impact > 0 ? "text-green-600" : "text-destructive"}>
-                          {m.lifeEvent.name} ({m.lifeEvent.impact > 0 ? "+" : ""}${m.lifeEvent.impact})
+                          {m.lifeEvent.name} ({m.lifeEvent.impact > 0 ? "+" : ""}{formatRs(m.lifeEvent.impact)})
                         </span>
                       )}
-                      <span className="text-muted-foreground">${m.balanceAfter.toLocaleString()}</span>
+                      <span className="text-muted-foreground">{formatRs(m.balanceAfter)}</span>
                       <Badge variant="secondary" className="text-xs">+{m.xpEarned} XP</Badge>
                     </div>
                   </div>
@@ -470,11 +461,11 @@ export default function BudgetSimulator() {
         <div className="grid grid-cols-2 gap-4">
           <Card><CardContent className="pt-6 text-center">
             <p className="text-xs text-muted-foreground">Final Balance</p>
-            <p className={`text-2xl font-bold ${finalBalance >= 0 ? "" : "text-destructive"}`}>${finalBalance.toLocaleString()}</p>
+            <p className={`text-2xl font-bold ${finalBalance >= 0 ? "" : "text-destructive"}`}>{formatRs(finalBalance)}</p>
           </CardContent></Card>
           <Card><CardContent className="pt-6 text-center">
             <p className="text-xs text-muted-foreground">Total Saved</p>
-            <p className="text-2xl font-bold text-green-600">${finalSavings.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-green-600">{formatRs(finalSavings)}</p>
           </CardContent></Card>
           <Card><CardContent className="pt-6 text-center">
             <p className="text-xs text-muted-foreground">XP Earned</p>
@@ -499,7 +490,7 @@ export default function BudgetSimulator() {
                         {m.lifeEvent.name}
                       </span>
                     )}
-                    <span className="text-muted-foreground">${m.balanceAfter.toLocaleString()}</span>
+                    <span className="text-muted-foreground">{formatRs(m.balanceAfter)}</span>
                   </div>
                 </div>
               ))}
