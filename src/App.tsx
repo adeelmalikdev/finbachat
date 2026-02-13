@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/AppLayout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import Assessments from "@/pages/Assessments";
@@ -38,9 +39,9 @@ const App = () => (
               <Route path="/learn" element={<Learn />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/expert/content" element={<ExpertContent />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/moderation" element={<AdminModeration />} />
+              <Route path="/expert/content" element={<ProtectedRoute requiredRoles={["expert", "admin"]}><ExpertContent /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute requiredRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />
+              <Route path="/admin/moderation" element={<ProtectedRoute requiredRoles={["admin"]}><AdminModeration /></ProtectedRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
