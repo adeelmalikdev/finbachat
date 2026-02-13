@@ -51,10 +51,7 @@ const DEFAULT_VIDEOS: VideoLesson[] = [
   { id: "d2", title: "The 50/30/20 Budget Rule Explained", description: "Master the popular 50/30/20 budgeting framework.", youtube_id: "HQzoZfc3GwQ", category: "Budgeting", duration: "8 min", difficulty: "Beginner", isDefault: true },
   { id: "d3", title: "How to Start Investing for Beginners", description: "A complete beginner's guide to investing.", youtube_id: "gFQNPmLKj1k", category: "Saving & Investing", duration: "20 min", difficulty: "Beginner", isDefault: true },
   { id: "d4", title: "Compound Interest - The 8th Wonder", description: "Understand how compound interest works.", youtube_id: "wf91rEGw88Q", category: "Saving & Investing", duration: "10 min", difficulty: "Beginner", isDefault: true },
-  { id: "d5", title: "How to Get Out of Debt Fast", description: "Proven strategies to pay off debt quickly.", youtube_id: "YsJ0m_4nNnE", category: "Debt Management", duration: "16 min", difficulty: "Beginner", isDefault: true },
-  { id: "d6", title: "Understanding Credit Scores", description: "What makes up your credit score and how to improve it.", youtube_id: "01AqFE_we8Y", category: "Debt Management", duration: "12 min", difficulty: "Beginner", isDefault: true },
   { id: "d7", title: "Financial Planning 101", description: "Create a comprehensive financial plan.", youtube_id: "4j2emMn7UaI", category: "Financial Planning", duration: "18 min", difficulty: "Beginner", isDefault: true },
-  { id: "d8", title: "Islamic Finance Basics", description: "Understanding Shariah-compliant finance.", youtube_id: "TcNtdVOegHY", category: "Financial Planning", duration: "17 min", difficulty: "Intermediate", isDefault: true },
 ];
 
 function extractYouTubeId(url: string): string | null {
@@ -85,6 +82,7 @@ export default function Learn() {
 
   // Video state
   const [dbVideos, setDbVideos] = useState<VideoLesson[]>([]);
+  const [hiddenDefaults, setHiddenDefaults] = useState<Set<string>>(new Set());
   const [selectedVideo, setSelectedVideo] = useState<VideoLesson | null>(null);
   const [watchedIds, setWatchedIds] = useState<Set<string>>(new Set());
   const [videoCategory, setVideoCategory] = useState<string | null>(null);
@@ -208,8 +206,15 @@ export default function Learn() {
     setSaving(false);
   }
 
-  async function handleDeleteVideo(videoId: string) {
-    const { error } = await supabase.from("video_lessons").delete().eq("id", videoId);
+  async function handleDeleteVideo(video: VideoLesson) {
+    if (video.isDefault) {
+      // Default videos aren't in DB, just hide them locally
+      setHiddenDefaults((prev) => new Set(prev).add(video.id));
+      setSelectedVideo(null);
+      toast({ title: "Video removed" });
+      return;
+    }
+    const { error } = await supabase.from("video_lessons").delete().eq("id", video.id);
     if (error) {
       toast({ title: "Error deleting video", description: error.message, variant: "destructive" });
     } else {
@@ -229,8 +234,8 @@ export default function Learn() {
     setParsedId(null);
   }
 
-  // Combine DB videos with defaults (DB videos first)
-  const allVideos: VideoLesson[] = [...dbVideos, ...DEFAULT_VIDEOS];
+  // Combine DB videos with defaults (DB videos first), filter out hidden defaults
+  const allVideos: VideoLesson[] = [...dbVideos, ...DEFAULT_VIDEOS.filter((v) => !hiddenDefaults.has(v.id))];
   const videoCategories = [...new Set(allVideos.map((v) => v.category))];
   const filteredVideos = allVideos.filter((v) => !videoCategory || v.category === videoCategory);
 
@@ -280,7 +285,7 @@ export default function Learn() {
                 <Button variant="ghost" size="sm" onClick={() => setSelectedVideo(null)} className="text-muted-foreground gap-1">
                   ← Back to Videos
                 </Button>
-                {!selectedVideo.isDefault && (isAdmin || (isExpert && selectedVideo.added_by === user?.id)) && (
+                {(isAdmin || (!selectedVideo.isDefault && isExpert && selectedVideo.added_by === user?.id)) && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" size="sm" className="gap-1"><Trash2 className="h-4 w-4" /> Remove</Button>
@@ -292,7 +297,7 @@ export default function Learn() {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteVideo(selectedVideo.id)}>Remove</AlertDialogAction>
+                        <AlertDialogAction onClick={() => handleDeleteVideo(selectedVideo)}>Remove</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -351,10 +356,10 @@ export default function Learn() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredVideos.map((video) => (
                 <Card key={video.id} className="cursor-pointer hover:shadow-md transition-shadow group relative" onClick={() => setSelectedVideo(video)}>
-                  {!video.isDefault && (isAdmin || (isExpert && video.added_by === user?.id)) && (
+                  {(isAdmin || (!video.isDefault && isExpert && video.added_by === user?.id)) && (
                     <button
                       className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-destructive/90 text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => { e.stopPropagation(); handleDeleteVideo(video.id); }}
+                      onClick={(e) => { e.stopPropagation(); handleDeleteVideo(video); }}
                       title="Remove video"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
