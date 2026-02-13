@@ -7,6 +7,15 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/AppLayout";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
+import Assessments from "@/pages/Assessments";
+import Simulations from "@/pages/Simulations";
+import Tools from "@/pages/Tools";
+import Learn from "@/pages/Learn";
+import Notifications from "@/pages/Notifications";
+import Settings from "@/pages/Settings";
+import ExpertContent from "@/pages/ExpertContent";
+import AdminUsers from "@/pages/AdminUsers";
+import AdminModeration from "@/pages/AdminModeration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +32,15 @@ const App = () => (
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/assessments" element={<Assessments />} />
+              <Route path="/simulations" element={<Simulations />} />
+              <Route path="/tools" element={<Tools />} />
+              <Route path="/learn" element={<Learn />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/expert/content" element={<ExpertContent />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/moderation" element={<AdminModeration />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
