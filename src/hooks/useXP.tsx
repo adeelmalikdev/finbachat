@@ -7,6 +7,7 @@ const XP_REWARDS = {
   simulation_complete: 75,
   tool_use: 25,
   article_read: 10,
+  video_watch: 15,
 } as const;
 
 type Activity = keyof typeof XP_REWARDS;
