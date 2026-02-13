@@ -318,6 +318,7 @@ export type Database = {
           category_id: string | null
           correct_answer: string | null
           created_at: string
+          difficulty: string
           id: string
           options: Json
           order_index: number
@@ -330,6 +331,7 @@ export type Database = {
           category_id?: string | null
           correct_answer?: string | null
           created_at?: string
+          difficulty?: string
           id?: string
           options?: Json
           order_index?: number
@@ -342,6 +344,7 @@ export type Database = {
           category_id?: string | null
           correct_answer?: string | null
           created_at?: string
+          difficulty?: string
           id?: string
           options?: Json
           order_index?: number
