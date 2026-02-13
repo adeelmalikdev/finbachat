@@ -482,6 +482,45 @@ export type Database = {
         }
         Relationships: []
       }
+      video_lessons: {
+        Row: {
+          added_by: string
+          category: string
+          created_at: string
+          description: string
+          difficulty: string
+          duration: string
+          id: string
+          title: string
+          youtube_id: string
+          youtube_url: string
+        }
+        Insert: {
+          added_by: string
+          category?: string
+          created_at?: string
+          description?: string
+          difficulty?: string
+          duration?: string
+          id?: string
+          title: string
+          youtube_id: string
+          youtube_url: string
+        }
+        Update: {
+          added_by?: string
+          category?: string
+          created_at?: string
+          description?: string
+          difficulty?: string
+          duration?: string
+          id?: string
+          title?: string
+          youtube_id?: string
+          youtube_url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
