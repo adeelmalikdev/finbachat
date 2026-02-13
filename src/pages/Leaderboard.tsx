@@ -10,7 +10,6 @@ interface LeaderboardEntry {
   user_id: string;
   xp: number;
   level: number;
-  behavior_type: string | null;
   display_name: string | null;
 }
 
@@ -27,23 +26,18 @@ export default function Leaderboard() {
   async function loadLeaderboard() {
     setLoading(true);
 
-    // Fetch progress + profiles
-    const [{ data: progress }, { data: profiles }] = await Promise.all([
-      supabase.from("user_progress").select("user_id, xp, level, behavior_type").order("xp", { ascending: false }).limit(100),
-      supabase.from("profiles").select("id, display_name"),
-    ]);
+    // Use safe leaderboard view that excludes sensitive fields
+    const { data } = await supabase
+      .from("leaderboard_view" as any)
+      .select("user_id, xp, level, display_name")
+      .order("xp", { ascending: false })
+      .limit(100);
 
-    const profileMap: Record<string, string> = {};
-    (profiles ?? []).forEach((p: any) => {
-      profileMap[p.id] = p.display_name || "Anonymous";
-    });
-
-    const list: LeaderboardEntry[] = (progress ?? []).map((p: any) => ({
+    const list: LeaderboardEntry[] = (data ?? []).map((p: any) => ({
       user_id: p.user_id,
       xp: p.xp,
       level: p.level,
-      behavior_type: p.behavior_type,
-      display_name: profileMap[p.user_id] || "Anonymous",
+      display_name: p.display_name || "Anonymous",
     }));
 
     setEntries(list);
@@ -126,9 +120,6 @@ export default function Leaderboard() {
                           <span className="flex items-center gap-1">
                             <TrendingUp className="h-3 w-3" /> Level {entry.level}
                           </span>
-                          {entry.behavior_type && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{entry.behavior_type}</Badge>
-                          )}
                         </div>
                       </div>
                     </div>
