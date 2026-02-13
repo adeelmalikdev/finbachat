@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import {
   Calculator, PiggyBank, ShieldCheck, TrendingUp, ArrowLeft, Plus, Trash2,
-  DollarSign, Target, Clock, BarChart3, CheckCircle2
+  Target, BarChart3, CheckCircle2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,22 @@ import { toast } from "@/hooks/use-toast";
 import type { Json } from "@/integrations/supabase/types";
 
 type ActiveTool = null | "budget" | "savings" | "emergency" | "risk";
+
+function formatRs(amount: number): string {
+  return `Rs ${amount.toLocaleString()}`;
+}
+
+async function loadLastResult(userId: string, toolName: string) {
+  const { data } = await supabase
+    .from("tool_results")
+    .select("inputs, outputs")
+    .eq("user_id", userId)
+    .eq("tool_name", toolName)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data;
+}
 
 const TOOL_META = [
   { id: "budget" as const, title: "Budget Planner", desc: "Track income and expenses with the 50/30/20 rule", icon: Calculator },
@@ -74,6 +90,21 @@ function BudgetPlanner({ userId, onBack, onXP }: { userId?: string; onBack: () =
   const [wants, setWants] = useState<BudgetItem[]>([{ label: "Entertainment", amount: 0 }, { label: "Dining Out", amount: 0 }]);
   const [savings, setSavings] = useState<BudgetItem[]>([{ label: "Emergency Fund", amount: 0 }, { label: "Investments", amount: 0 }]);
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    loadLastResult(userId, "budget_planner").then((data) => {
+      if (data?.outputs) {
+        const o = data.outputs as any;
+        if (o.income) setIncome(o.income);
+        if (o.needs?.length) setNeeds(o.needs);
+        if (o.wants?.length) setWants(o.wants);
+        if (o.savings?.length) setSavings(o.savings);
+        setLoaded(true);
+      }
+    });
+  }, [userId]);
 
   const totalNeeds = needs.reduce((s, i) => s + i.amount, 0);
   const totalWants = wants.reduce((s, i) => s + i.amount, 0);
@@ -114,9 +145,15 @@ function BudgetPlanner({ userId, onBack, onXP }: { userId?: string; onBack: () =
         </div>
       </div>
 
+      {loaded && (
+        <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+          ✓ Loaded your last saved budget. Make changes and save again to update.
+        </div>
+      )}
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><DollarSign className="h-4 w-4 text-primary" /> Monthly Income</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">Monthly Income (Rs)</CardTitle>
         </CardHeader>
         <CardContent>
           <Input type="number" placeholder="Enter monthly take-home pay" value={income || ""} onChange={(e) => { setIncome(Number(e.target.value)); setSaved(false); }} />
@@ -131,9 +168,9 @@ function BudgetPlanner({ userId, onBack, onXP }: { userId?: string; onBack: () =
         <Card>
           <CardHeader><CardTitle className="text-base">Summary</CardTitle></CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex justify-between text-sm"><span>Total Income</span><span className="font-semibold">${income.toLocaleString()}</span></div>
-            <div className="flex justify-between text-sm"><span>Total Expenses</span><span className="font-semibold">${totalExpenses.toLocaleString()}</span></div>
-            <div className={`flex justify-between text-sm font-semibold ${remaining >= 0 ? "text-green-600" : "text-red-600"}`}><span>Remaining</span><span>${remaining.toLocaleString()}</span></div>
+            <div className="flex justify-between text-sm"><span>Total Income</span><span className="font-semibold">{formatRs(income)}</span></div>
+            <div className="flex justify-between text-sm"><span>Total Expenses</span><span className="font-semibold">{formatRs(totalExpenses)}</span></div>
+            <div className={`flex justify-between text-sm font-semibold ${remaining >= 0 ? "text-green-600" : "text-destructive"}`}><span>Remaining</span><span>{formatRs(remaining)}</span></div>
             <div className="grid grid-cols-3 gap-3 pt-2">
               <PctIndicator label="Needs" pct={needsPct} target={50} />
               <PctIndicator label="Wants" pct={wantsPct} target={30} />
@@ -195,12 +232,26 @@ function SavingsCalculator({ userId, onBack, onXP }: { userId?: string; onBack: 
   const [monthly, setMonthly] = useState(0);
   const [rate, setRate] = useState(5);
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  const remaining = Math.max(0, goal - current);
-  const monthsNeeded = monthly > 0 ? Math.ceil(remaining / monthly) : 0;
+  useEffect(() => {
+    if (!userId) return;
+    loadLastResult(userId, "savings_calculator").then((data) => {
+      if (data?.inputs) {
+        const i = data.inputs as any;
+        if (i.goal) setGoal(i.goal);
+        if (i.current) setCurrent(i.current);
+        if (i.monthly) setMonthly(i.monthly);
+        if (i.rate !== undefined) setRate(i.rate);
+        setLoaded(true);
+      }
+    });
+  }, [userId]);
+
+  const remainingAmt = Math.max(0, goal - current);
+  const monthsNeeded = monthly > 0 ? Math.ceil(remainingAmt / monthly) : 0;
   const yearsMonths = monthsNeeded > 0 ? `${Math.floor(monthsNeeded / 12)}y ${monthsNeeded % 12}m` : "—";
 
-  // Simple compound projection
   const projectionMonths = 60;
   const monthlyRate = rate / 100 / 12;
   const projections = Array.from({ length: projectionMonths + 1 }, (_, m) => {
@@ -219,7 +270,7 @@ function SavingsCalculator({ userId, onBack, onXP }: { userId?: string; onBack: 
     await supabase.from("tool_results").insert({
       user_id: userId, tool_name: "savings_calculator",
       inputs: { goal, current, monthly, rate } as Json,
-      outputs: { remaining, monthsNeeded, progressPct, projectedYearsMonths } as Json,
+      outputs: { remaining: remainingAmt, monthsNeeded, progressPct, projectedYearsMonths } as Json,
     });
     setSaved(true);
     toast({ title: "Savings plan saved!" });
@@ -236,12 +287,18 @@ function SavingsCalculator({ userId, onBack, onXP }: { userId?: string; onBack: 
         </div>
       </div>
 
+      {loaded && (
+        <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+          ✓ Loaded your last saved plan. Make changes and save again to update.
+        </div>
+      )}
+
       <Card>
         <CardContent className="pt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div><Label>Savings Goal ($)</Label><Input type="number" value={goal || ""} onChange={(e) => { setGoal(Number(e.target.value)); setSaved(false); }} /></div>
-            <div><Label>Current Savings ($)</Label><Input type="number" value={current || ""} onChange={(e) => { setCurrent(Number(e.target.value)); setSaved(false); }} /></div>
-            <div><Label>Monthly Contribution ($)</Label><Input type="number" value={monthly || ""} onChange={(e) => { setMonthly(Number(e.target.value)); setSaved(false); }} /></div>
+            <div><Label>Savings Goal (Rs)</Label><Input type="number" value={goal || ""} onChange={(e) => { setGoal(Number(e.target.value)); setSaved(false); }} /></div>
+            <div><Label>Current Savings (Rs)</Label><Input type="number" value={current || ""} onChange={(e) => { setCurrent(Number(e.target.value)); setSaved(false); }} /></div>
+            <div><Label>Monthly Contribution (Rs)</Label><Input type="number" value={monthly || ""} onChange={(e) => { setMonthly(Number(e.target.value)); setSaved(false); }} /></div>
             <div><Label>Annual Interest Rate (%)</Label><Input type="number" value={rate || ""} onChange={(e) => { setRate(Number(e.target.value)); setSaved(false); }} /></div>
           </div>
         </CardContent>
@@ -257,7 +314,7 @@ function SavingsCalculator({ userId, onBack, onXP }: { userId?: string; onBack: 
             </div>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold font-display">${remaining.toLocaleString()}</div>
+                <div className="text-2xl font-bold font-display">{formatRs(remainingAmt)}</div>
                 <p className="text-xs text-muted-foreground">Remaining</p>
               </div>
               <div>
@@ -265,7 +322,7 @@ function SavingsCalculator({ userId, onBack, onXP }: { userId?: string; onBack: 
                 <p className="text-xs text-muted-foreground">Time to Goal</p>
               </div>
               <div>
-                <div className="text-2xl font-bold font-display">${Math.round(projections[Math.min(projectionMonths, 12)]).toLocaleString()}</div>
+                <div className="text-2xl font-bold font-display">{formatRs(Math.round(projections[Math.min(projectionMonths, 12)]))}</div>
                 <p className="text-xs text-muted-foreground">After 1 Year</p>
               </div>
             </div>
@@ -289,6 +346,24 @@ function EmergencyFund({ userId, onBack, onXP }: { userId?: string; onBack: () =
   const [other, setOther] = useState(0);
   const [currentFund, setCurrentFund] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    loadLastResult(userId, "emergency_fund").then((data) => {
+      if (data?.inputs) {
+        const i = data.inputs as any;
+        if (i.rent) setRent(i.rent);
+        if (i.utilities) setUtilities(i.utilities);
+        if (i.food) setFood(i.food);
+        if (i.transport) setTransport(i.transport);
+        if (i.insurance) setInsurance(i.insurance);
+        if (i.other) setOther(i.other);
+        if (i.currentFund) setCurrentFund(i.currentFund);
+        setLoaded(true);
+      }
+    });
+  }, [userId]);
 
   const monthlyEssentials = rent + utilities + food + transport + insurance + other;
   const target3 = monthlyEssentials * 3;
@@ -319,8 +394,14 @@ function EmergencyFund({ userId, onBack, onXP }: { userId?: string; onBack: () =
         </div>
       </div>
 
+      {loaded && (
+        <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+          ✓ Loaded your last saved data. Make changes and save again to update.
+        </div>
+      )}
+
       <Card>
-        <CardHeader><CardTitle className="text-base">Monthly Essential Expenses</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Monthly Essential Expenses (Rs)</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Rent/Mortgage</Label><Input type="number" value={rent || ""} onChange={(e) => { setRent(Number(e.target.value)); setSaved(false); }} /></div>
@@ -334,7 +415,7 @@ function EmergencyFund({ userId, onBack, onXP }: { userId?: string; onBack: () =
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Current Emergency Savings</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Current Emergency Savings (Rs)</CardTitle></CardHeader>
         <CardContent>
           <Input type="number" value={currentFund || ""} onChange={(e) => { setCurrentFund(Number(e.target.value)); setSaved(false); }} placeholder="How much do you have saved?" />
         </CardContent>
@@ -346,18 +427,18 @@ function EmergencyFund({ userId, onBack, onXP }: { userId?: string; onBack: () =
           <CardContent className="space-y-4">
             <div className="text-center">
               <div className="text-sm text-muted-foreground">Monthly Essentials</div>
-              <div className="text-3xl font-bold font-display">${monthlyEssentials.toLocaleString()}</div>
+              <div className="text-3xl font-bold font-display">{formatRs(monthlyEssentials)}</div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 rounded-lg bg-muted/50 text-center">
                 <div className="text-xs text-muted-foreground mb-1">3-Month Target</div>
-                <div className="text-xl font-bold">${target3.toLocaleString()}</div>
+                <div className="text-xl font-bold">{formatRs(target3)}</div>
                 <Progress value={progress3} className="h-2 mt-2" />
                 <div className="text-xs text-muted-foreground mt-1">{progress3}% funded</div>
               </div>
               <div className="p-4 rounded-lg bg-muted/50 text-center">
                 <div className="text-xs text-muted-foreground mb-1">6-Month Target</div>
-                <div className="text-xl font-bold">${target6.toLocaleString()}</div>
+                <div className="text-xl font-bold">{formatRs(target6)}</div>
                 <Progress value={progress6} className="h-2 mt-2" />
                 <div className="text-xs text-muted-foreground mt-1">{progress6}% funded</div>
               </div>
@@ -388,6 +469,24 @@ function RiskProfile({ userId, onBack, onXP }: { userId?: string; onBack: () => 
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [result, setResult] = useState<{ score: number; profile: string; description: string } | null>(null);
   const [saved, setSaved] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    loadLastResult(userId, "risk_profile").then((data) => {
+      if (data?.outputs) {
+        const o = data.outputs as any;
+        if (o.score !== undefined && o.profile && o.description) {
+          setResult({ score: o.score, profile: o.profile, description: o.description });
+          setLoaded(true);
+        }
+      }
+      if (data?.inputs) {
+        const i = data.inputs as any;
+        if (i.answers) setAnswers(i.answers);
+      }
+    });
+  }, [userId]);
 
   const allAnswered = Object.keys(answers).length === RISK_QUESTIONS.length;
 
@@ -418,13 +517,18 @@ function RiskProfile({ userId, onBack, onXP }: { userId?: string; onBack: () => 
   }
 
   if (result) {
-    const color = result.score <= 25 ? "text-blue-600" : result.score <= 50 ? "text-green-600" : result.score <= 75 ? "text-amber-600" : "text-red-600";
+    const color = result.score <= 25 ? "text-blue-600" : result.score <= 50 ? "text-green-600" : result.score <= 75 ? "text-amber-600" : "text-destructive";
     return (
       <div className="space-y-6 max-w-2xl mx-auto">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
           <h1 className="font-display text-2xl font-bold">Your Risk Profile</h1>
         </div>
+        {loaded && (
+          <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+            ✓ Showing your last saved risk profile. Retake to update.
+          </div>
+        )}
         <Card>
           <CardContent className="pt-6 text-center space-y-4">
             <BarChart3 className="h-10 w-10 text-primary mx-auto" />
@@ -433,7 +537,7 @@ function RiskProfile({ userId, onBack, onXP }: { userId?: string; onBack: () => 
             <p className="text-sm text-muted-foreground max-w-md mx-auto">{result.description}</p>
           </CardContent>
           <CardFooter className="flex gap-3 justify-center">
-            <Button variant="outline" onClick={() => { setResult(null); setAnswers({}); setSaved(false); }}>Retake</Button>
+            <Button variant="outline" onClick={() => { setResult(null); setAnswers({}); setSaved(false); setLoaded(false); }}>Retake</Button>
             <Button onClick={saveResult2} disabled={saved}>{saved ? "Saved ✓" : "Save Result"}</Button>
           </CardFooter>
         </Card>
