@@ -322,10 +322,10 @@ export default function Assessments() {
               className="space-y-3"
             >
               {currentQuestion.options.map((option, i) => (
-                <div key={i} className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-muted/50 transition-colors cursor-pointer">
-                  <RadioGroupItem value={option} id={`opt-${i}`} />
-                  <Label htmlFor={`opt-${i}`} className="flex-1 cursor-pointer text-sm">{option}</Label>
-                </div>
+                <label key={i} htmlFor={`opt-${currentQuestion.id}-${i}`} className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-muted/50 transition-colors cursor-pointer">
+                  <RadioGroupItem value={option} id={`opt-${currentQuestion.id}-${i}`} />
+                  <span className="flex-1 text-sm">{option}</span>
+                </label>
               ))}
             </RadioGroup>
           </CardContent>
