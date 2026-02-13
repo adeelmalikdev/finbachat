@@ -46,6 +46,15 @@ export function useXP() {
 
       const updatedBadges = [...currentBadgeIds, ...newBadgeIds];
 
+      // Calculate financial health score based on activity engagement
+      // Score components: XP progress (40%), level (30%), badge completion (30%)
+      const xpComponent = Math.min(40, Math.round((newXP / 2000) * 40));
+      const levelComponent = Math.min(30, newLevel * 5);
+      const badgeComponent = allBadges && allBadges.length > 0
+        ? Math.min(30, Math.round((updatedBadges.length / allBadges.length) * 30))
+        : 0;
+      const financialHealthScore = Math.min(100, xpComponent + levelComponent + badgeComponent);
+
       // Update progress
       await supabase
         .from("user_progress")
@@ -53,6 +62,7 @@ export function useXP() {
           xp: newXP,
           level: newLevel,
           badges_earned: updatedBadges,
+          financial_health_score: financialHealthScore,
         })
         .eq("user_id", user.id);
 

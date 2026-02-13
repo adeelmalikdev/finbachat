@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Gamepad2, ArrowRight, ChevronRight, Trophy, Clock, Target,
   Wallet, Home, TrendingUp, ShieldAlert, CheckCircle2, RotateCcw
@@ -12,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useXP } from "@/hooks/useXP";
 import { toast } from "@/hooks/use-toast";
 import type { Json } from "@/integrations/supabase/types";
+import BudgetSimulator from "./BudgetSimulator";
 
 // --- Scenario Data ---
 interface Choice {
@@ -38,12 +40,12 @@ const SCENARIOS: Scenario[] = [
   {
     id: "emergency-fund",
     title: "Emergency Fund Crisis",
-    description: "Your car breaks down and you need $2,000 for repairs. Navigate this unexpected expense.",
+    description: "Your car breaks down and you need Rs 600,000 for repairs. Navigate this unexpected expense.",
     icon: ShieldAlert,
     steps: [
       {
         title: "The Breakdown",
-        narrative: "Your car won't start Monday morning. The mechanic says repairs will cost $2,000. You need the car for work. What do you do first?",
+        narrative: "Your car won't start Monday morning. The mechanic says repairs will cost Rs 600,000. You need the car for work. What do you do first?",
         choices: [
           { text: "Use my emergency fund to cover it immediately", score: 10, feedback: "Excellent! This is exactly what emergency funds are for. You avoid debt and stress." },
           { text: "Put it on a credit card and pay it off over time", score: 4, feedback: "This works short-term but you'll pay interest. Credit card rates average 20%+." },
@@ -53,9 +55,9 @@ const SCENARIOS: Scenario[] = [
       },
       {
         title: "Rebuilding Savings",
-        narrative: "The car is fixed. Now you need to rebuild your savings. Your monthly take-home is $3,500. How do you approach this?",
+        narrative: "The car is fixed. Now you need to rebuild your savings. Your monthly take-home is Rs 1,050,000. How do you approach this?",
         choices: [
-          { text: "Set up an automatic transfer of $300/month to savings", score: 10, feedback: "Automating savings is the most effective strategy. You'll rebuild in about 7 months." },
+          { text: "Set up an automatic transfer of Rs 90,000/month to savings", score: 10, feedback: "Automating savings is the most effective strategy. You'll rebuild in about 7 months." },
           { text: "Cut all non-essential spending until fully rebuilt", score: 6, feedback: "While effective short-term, extreme restriction often leads to burnout and overspending." },
           { text: "Save whatever is left at the end of each month", score: 3, feedback: "Without a plan, leftover savings rarely materialize. Pay yourself first!" },
           { text: "Wait until you get a raise to start saving again", score: 1, feedback: "Delaying means you're unprotected longer. Start small now rather than waiting." },
@@ -67,7 +69,7 @@ const SCENARIOS: Scenario[] = [
         choices: [
           { text: "Build a 3-6 month emergency fund and maintain it", score: 10, feedback: "The gold standard! 3-6 months of expenses gives you a solid safety net." },
           { text: "Get better insurance coverage for your car", score: 6, feedback: "Good thinking, but insurance doesn't cover all repairs. You still need liquid savings." },
-          { text: "Keep $500 in a jar at home for emergencies", score: 3, feedback: "$500 is a start but won't cover major expenses. Aim higher and keep it in a savings account." },
+          { text: "Keep Rs 15,000 in a jar at home for emergencies", score: 3, feedback: "Rs 15,000 is a start but won't cover major expenses. Aim higher and keep it in a savings account." },
           { text: "Hope nothing bad happens again", score: 0, feedback: "Unfortunately, emergencies are inevitable. Planning is essential for financial stability." },
         ],
       },
@@ -76,12 +78,12 @@ const SCENARIOS: Scenario[] = [
   {
     id: "first-budget",
     title: "Your First Budget",
-    description: "You just landed your first full-time job earning $4,000/month. Create a budget from scratch.",
+    description: "You just landed your first full-time job earning Rs 1,200,000/month. Create a budget from scratch.",
     icon: Wallet,
     steps: [
       {
         title: "Setting Up",
-        narrative: "Congratulations on your new job! Your monthly take-home is $4,000. What's your first step in managing this income?",
+        narrative: "Congratulations on your new job! Your monthly take-home is Rs 1,200,000. What's your first step in managing this income?",
         choices: [
           { text: "List all expenses and create a 50/30/20 budget", score: 10, feedback: "The 50/30/20 rule is a proven framework: 50% needs, 30% wants, 20% savings." },
           { text: "Spend freely for a month to see where money goes", score: 3, feedback: "Tracking is good, but spending without limits means you'll likely overspend first." },
@@ -91,19 +93,19 @@ const SCENARIOS: Scenario[] = [
       },
       {
         title: "Housing Decision",
-        narrative: "You're looking for an apartment. Rent options range from $800-$1,600/month. Your take-home is $4,000. What do you choose?",
+        narrative: "You're looking for an apartment. Rent options range from Rs 240,000-Rs 480,000/month. Your take-home is Rs 1,200,000. What do you choose?",
         choices: [
-          { text: "$1,000/month — comfortable but leaves room for savings", score: 10, feedback: "25% of income on housing is ideal. You have plenty left for other goals." },
-          { text: "$800/month — cheapest option, further from work", score: 7, feedback: "Great for savings, but factor in commute costs and time. Still a solid choice." },
-          { text: "$1,400/month — nice place, close to everything", score: 4, feedback: "35% of income on housing is high. It limits your ability to save and handle surprises." },
-          { text: "$1,600/month — luxury apartment with amenities", score: 1, feedback: "40% on housing is risky. One unexpected expense could put you in debt." },
+          { text: "Rs 300,000/month — comfortable but leaves room for savings", score: 10, feedback: "25% of income on housing is ideal. You have plenty left for other goals." },
+          { text: "Rs 240,000/month — cheapest option, further from work", score: 7, feedback: "Great for savings, but factor in commute costs and time. Still a solid choice." },
+          { text: "Rs 420,000/month — nice place, close to everything", score: 4, feedback: "35% of income on housing is high. It limits your ability to save and handle surprises." },
+          { text: "Rs 480,000/month — luxury apartment with amenities", score: 1, feedback: "40% on housing is risky. One unexpected expense could put you in debt." },
         ],
       },
       {
         title: "Lifestyle Choices",
-        narrative: "After covering rent ($1,000) and necessities ($800), you have $2,200 left. Friends want to go out every weekend. How do you balance fun and finances?",
+        narrative: "After covering rent (Rs 300,000) and necessities (Rs 240,000), you have Rs 660,000 left. Friends want to go out every weekend. How do you balance fun and finances?",
         choices: [
-          { text: "Set a $400 fun budget and save $800+ each month", score: 10, feedback: "Setting a fun budget lets you enjoy life while building wealth. Smart balance!" },
+          { text: "Set a Rs 120,000 fun budget and save Rs 240,000+ each month", score: 10, feedback: "Setting a fun budget lets you enjoy life while building wealth. Smart balance!" },
           { text: "Go out every weekend — you only live once", score: 2, feedback: "YOLO spending feels good now but leaves you vulnerable and delays financial goals." },
           { text: "Never go out — save every penny", score: 4, feedback: "While financially aggressive, social isolation isn't sustainable. Budget for fun." },
           { text: "Alternate — go out every other weekend", score: 7, feedback: "Good compromise! You're still spending less while maintaining a social life." },
@@ -111,7 +113,7 @@ const SCENARIOS: Scenario[] = [
       },
       {
         title: "Unexpected Windfall",
-        narrative: "You receive a $2,000 tax refund! What do you do with it?",
+        narrative: "You receive a Rs 600,000 tax refund! What do you do with it?",
         choices: [
           { text: "Split it: 50% emergency fund, 30% debt, 20% treat", score: 10, feedback: "Balanced approach! You strengthen finances while rewarding yourself." },
           { text: "Put it all in savings", score: 7, feedback: "Financially sound but allowing yourself a small reward helps maintain motivation." },
@@ -124,12 +126,12 @@ const SCENARIOS: Scenario[] = [
   {
     id: "investment-journey",
     title: "Investment Starter",
-    description: "You have $5,000 to invest for the first time. Navigate the world of investing.",
+    description: "You have Rs 1,500,000 to invest for the first time. Navigate the world of investing.",
     icon: TrendingUp,
     steps: [
       {
         title: "Getting Started",
-        narrative: "You've saved $5,000 and want to start investing. But first, what should you check?",
+        narrative: "You've saved Rs 1,500,000 and want to start investing. But first, what should you check?",
         choices: [
           { text: "Ensure I have an emergency fund and no high-interest debt", score: 10, feedback: "Perfect! Investing before having a safety net or while paying 20%+ interest is risky." },
           { text: "Research which stocks are trending right now", score: 3, feedback: "Chasing trends is speculative, not investing. Fundamentals matter more." },
@@ -149,7 +151,7 @@ const SCENARIOS: Scenario[] = [
       },
       {
         title: "Market Downturn",
-        narrative: "Three months later, the market drops 15% and your $5,000 is now worth $4,250. What do you do?",
+        narrative: "Three months later, the market drops 15% and your Rs 1,500,000 is now worth Rs 1,275,000. What do you do?",
         choices: [
           { text: "Stay the course — downturns are normal over 20 years", score: 10, feedback: "Markets have always recovered over long periods. Staying invested is key to long-term growth." },
           { text: "Sell everything to prevent further losses", score: 1, feedback: "Selling during a downturn locks in your losses. You'd miss the recovery." },
@@ -167,7 +169,7 @@ const SCENARIOS: Scenario[] = [
     steps: [
       {
         title: "The Big Question",
-        narrative: "You earn $6,000/month and have $30,000 saved. Rent is $1,500/month. A house you like costs $250,000. What's your first consideration?",
+        narrative: "You earn Rs 1,800,000/month and have Rs 9,000,000 saved. Rent is Rs 450,000/month. A house you like costs Rs 75,000,000. What's your first consideration?",
         choices: [
           { text: "Calculate total costs of ownership vs renting long-term", score: 10, feedback: "Smart! Owning includes mortgage, taxes, insurance, maintenance. Compare the full picture." },
           { text: "Buy immediately — renting is throwing money away", score: 2, feedback: "Rent isn't wasted — it buys flexibility and zero maintenance costs. Buying isn't always better." },
@@ -177,21 +179,21 @@ const SCENARIOS: Scenario[] = [
       },
       {
         title: "Down Payment Strategy",
-        narrative: "You decide to work toward buying. You have $30,000 saved. The recommended down payment is 20% ($50,000). What's your plan?",
+        narrative: "You decide to work toward buying. You have Rs 9,000,000 saved. The recommended down payment is 20% (Rs 15,000,000). What's your plan?",
         choices: [
-          { text: "Save more until I have 20% plus an emergency fund", score: 10, feedback: "20% down avoids PMI ($100-200/month extra) and keeps you financially safe." },
+          { text: "Save more until I have 20% plus an emergency fund", score: 10, feedback: "20% down avoids PMI and keeps you financially safe." },
           { text: "Put down 10% now and pay PMI", score: 6, feedback: "Viable if the market is right, but PMI adds cost. Make sure you can still save." },
-          { text: "Use all $30,000 as down payment with 3.5% FHA loan", score: 3, feedback: "Using all savings for a down payment leaves you with no emergency buffer. Risky!" },
+          { text: "Use all Rs 9,000,000 as down payment with a smaller loan", score: 3, feedback: "Using all savings for a down payment leaves you with no emergency buffer. Risky!" },
           { text: "Borrow from my retirement account for the down payment", score: 2, feedback: "Raiding retirement has penalties and taxes, plus you lose years of compound growth." },
         ],
       },
       {
         title: "Making an Offer",
-        narrative: "You've saved enough. In a competitive market, a seller has multiple offers on a $250,000 home. What's your approach?",
+        narrative: "You've saved enough. In a competitive market, a seller has multiple offers on a Rs 75,000,000 home. What's your approach?",
         choices: [
           { text: "Offer asking price with a home inspection contingency", score: 10, feedback: "Fair price with protection. Never skip the inspection — hidden issues can cost thousands." },
-          { text: "Offer $280,000 to guarantee you win the bid", score: 2, feedback: "Overbidding 12% means you start with negative equity. Patience finds better deals." },
-          { text: "Waive all contingencies to make your offer attractive", score: 1, feedback: "Waiving inspection is extremely risky. You could inherit $50k+ in hidden problems." },
+          { text: "Offer Rs 84,000,000 to guarantee you win the bid", score: 2, feedback: "Overbidding 12% means you start with negative equity. Patience finds better deals." },
+          { text: "Waive all contingencies to make your offer attractive", score: 1, feedback: "Waiving inspection is extremely risky. You could inherit huge hidden problems." },
           { text: "Offer below asking and be prepared to walk away", score: 7, feedback: "In a hot market this may not work, but knowing your limit is financially disciplined." },
         ],
       },
@@ -313,67 +315,84 @@ export default function Simulations() {
           <p className="text-muted-foreground">Practice real-world financial decisions in risk-free scenarios.</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {SCENARIOS.map((scenario) => {
-            const Icon = scenario.icon;
-            const completedCount = pastSessions.filter((s) => s.simulation_type === scenario.id && s.status === "completed").length;
-            const bestScore = pastSessions
-              .filter((s) => s.simulation_type === scenario.id && s.status === "completed")
-              .reduce((best, s) => Math.max(best, s.total_score ?? 0), 0);
+        <Tabs defaultValue="scenarios">
+          <TabsList>
+            <TabsTrigger value="scenarios" className="gap-1.5">
+              <Gamepad2 className="h-4 w-4" /> Scenarios
+            </TabsTrigger>
+            <TabsTrigger value="budget" className="gap-1.5">
+              <Wallet className="h-4 w-4" /> Budget Simulator
+            </TabsTrigger>
+          </TabsList>
 
-            return (
-              <Card key={scenario.id} className="relative overflow-hidden hover:shadow-md transition-shadow">
-                <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-bl-full" />
+          <TabsContent value="scenarios" className="space-y-4 mt-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              {SCENARIOS.map((scenario) => {
+                const Icon = scenario.icon;
+                const completedCount = pastSessions.filter((s) => s.simulation_type === scenario.id && s.status === "completed").length;
+                const bestScore = pastSessions
+                  .filter((s) => s.simulation_type === scenario.id && s.status === "completed")
+                  .reduce((best, s) => Math.max(best, s.total_score ?? 0), 0);
+
+                return (
+                  <Card key={scenario.id} className="relative overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-bl-full" />
+                    <CardHeader>
+                      <CardTitle className="font-display text-lg flex items-center gap-2">
+                        <Icon className="h-5 w-5 text-primary" /> {scenario.title}
+                      </CardTitle>
+                      <CardDescription>{scenario.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                        <span className="flex items-center gap-1"><Target className="h-3.5 w-3.5" /> {scenario.steps.length} decisions</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> ~5 min</span>
+                      </div>
+                      {completedCount > 0 && (
+                        <div className="flex items-center gap-3 mb-4">
+                          <Badge variant="secondary" className="gap-1"><CheckCircle2 className="h-3 w-3" /> Completed {completedCount}x</Badge>
+                          <span className="text-sm font-medium">Best: {bestScore}%</span>
+                        </div>
+                      )}
+                      <Button onClick={() => startScenario(scenario)} className="gap-2 w-full">
+                        {completedCount > 0 ? <><RotateCcw className="h-4 w-4" /> Replay</> : <>Start <ArrowRight className="h-4 w-4" /></>}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {pastSessions.length > 0 && (
+              <Card>
                 <CardHeader>
-                  <CardTitle className="font-display text-lg flex items-center gap-2">
-                    <Icon className="h-5 w-5 text-primary" /> {scenario.title}
-                  </CardTitle>
-                  <CardDescription>{scenario.description}</CardDescription>
+                  <CardTitle className="font-display text-lg">Session History</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                    <span className="flex items-center gap-1"><Target className="h-3.5 w-3.5" /> {scenario.steps.length} decisions</span>
-                    <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> ~5 min</span>
+                  <div className="space-y-3">
+                    {pastSessions.slice(0, 10).map((s) => {
+                      const scenario = SCENARIOS.find((sc) => sc.id === s.simulation_type);
+                      return (
+                        <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                          <div className="flex items-center gap-3">
+                            <Badge variant={s.status === "completed" ? "default" : "secondary"}>{s.status}</Badge>
+                            <span className="text-sm font-medium">{scenario?.title ?? s.simulation_type}</span>
+                            <span className="text-xs text-muted-foreground">{new Date(s.started_at).toLocaleDateString()}</span>
+                          </div>
+                          <span className="font-semibold text-sm">{s.total_score ?? 0}%</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                  {completedCount > 0 && (
-                    <div className="flex items-center gap-3 mb-4">
-                      <Badge variant="secondary" className="gap-1"><CheckCircle2 className="h-3 w-3" /> Completed {completedCount}x</Badge>
-                      <span className="text-sm font-medium">Best: {bestScore}%</span>
-                    </div>
-                  )}
-                  <Button onClick={() => startScenario(scenario)} className="gap-2 w-full">
-                    {completedCount > 0 ? <><RotateCcw className="h-4 w-4" /> Replay</> : <>Start <ArrowRight className="h-4 w-4" /></>}
-                  </Button>
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
+            )}
+          </TabsContent>
 
-        {pastSessions.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-display text-lg">Session History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {pastSessions.slice(0, 10).map((s) => {
-                  const scenario = SCENARIOS.find((sc) => sc.id === s.simulation_type);
-                  return (
-                    <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                      <div className="flex items-center gap-3">
-                        <Badge variant={s.status === "completed" ? "default" : "secondary"}>{s.status}</Badge>
-                        <span className="text-sm font-medium">{scenario?.title ?? s.simulation_type}</span>
-                        <span className="text-xs text-muted-foreground">{new Date(s.started_at).toLocaleDateString()}</span>
-                      </div>
-                      <span className="font-semibold text-sm">{s.total_score ?? 0}%</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          <TabsContent value="budget" className="mt-4">
+            <BudgetSimulator />
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }
