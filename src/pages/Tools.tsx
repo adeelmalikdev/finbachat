@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useXP } from "@/hooks/useXP";
 import { toast } from "@/hooks/use-toast";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -26,12 +27,18 @@ const TOOL_META = [
 
 export default function Tools() {
   const { user } = useAuth();
+  const { awardXP } = useXP();
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
 
-  if (activeTool === "budget") return <BudgetPlanner userId={user?.id} onBack={() => setActiveTool(null)} />;
-  if (activeTool === "savings") return <SavingsCalculator userId={user?.id} onBack={() => setActiveTool(null)} />;
-  if (activeTool === "emergency") return <EmergencyFund userId={user?.id} onBack={() => setActiveTool(null)} />;
-  if (activeTool === "risk") return <RiskProfile userId={user?.id} onBack={() => setActiveTool(null)} />;
+  const onXP = async (toolName: string) => {
+    await awardXP("tool_use", toolName);
+    toast({ title: "+25 XP!", description: "You earned XP for using a financial tool." });
+  };
+
+  if (activeTool === "budget") return <BudgetPlanner userId={user?.id} onBack={() => setActiveTool(null)} onXP={() => onXP("Budget Planner")} />;
+  if (activeTool === "savings") return <SavingsCalculator userId={user?.id} onBack={() => setActiveTool(null)} onXP={() => onXP("Savings Calculator")} />;
+  if (activeTool === "emergency") return <EmergencyFund userId={user?.id} onBack={() => setActiveTool(null)} onXP={() => onXP("Emergency Fund")} />;
+  if (activeTool === "risk") return <RiskProfile userId={user?.id} onBack={() => setActiveTool(null)} onXP={() => onXP("Risk Profile")} />;
 
   return (
     <div className="space-y-6">
@@ -61,7 +68,7 @@ export default function Tools() {
 // ===================== BUDGET PLANNER =====================
 interface BudgetItem { label: string; amount: number }
 
-function BudgetPlanner({ userId, onBack }: { userId?: string; onBack: () => void }) {
+function BudgetPlanner({ userId, onBack, onXP }: { userId?: string; onBack: () => void; onXP: () => void }) {
   const [income, setIncome] = useState(0);
   const [needs, setNeeds] = useState<BudgetItem[]>([{ label: "Rent/Mortgage", amount: 0 }, { label: "Utilities", amount: 0 }, { label: "Groceries", amount: 0 }]);
   const [wants, setWants] = useState<BudgetItem[]>([{ label: "Entertainment", amount: 0 }, { label: "Dining Out", amount: 0 }]);
@@ -84,6 +91,7 @@ function BudgetPlanner({ userId, onBack }: { userId?: string; onBack: () => void
     await supabase.from("tool_results").insert({ user_id: userId, tool_name: "budget_planner", inputs: { income } as Json, outputs });
     setSaved(true);
     toast({ title: "Budget saved!" });
+    onXP();
   }
 
   function addItem(setter: React.Dispatch<React.SetStateAction<BudgetItem[]>>) {
@@ -181,7 +189,7 @@ function PctIndicator({ label, pct, target }: { label: string; pct: number; targ
 }
 
 // ===================== SAVINGS CALCULATOR =====================
-function SavingsCalculator({ userId, onBack }: { userId?: string; onBack: () => void }) {
+function SavingsCalculator({ userId, onBack, onXP }: { userId?: string; onBack: () => void; onXP: () => void }) {
   const [goal, setGoal] = useState(0);
   const [current, setCurrent] = useState(0);
   const [monthly, setMonthly] = useState(0);
@@ -215,6 +223,7 @@ function SavingsCalculator({ userId, onBack }: { userId?: string; onBack: () => 
     });
     setSaved(true);
     toast({ title: "Savings plan saved!" });
+    onXP();
   }
 
   return (
@@ -271,7 +280,7 @@ function SavingsCalculator({ userId, onBack }: { userId?: string; onBack: () => 
 }
 
 // ===================== EMERGENCY FUND =====================
-function EmergencyFund({ userId, onBack }: { userId?: string; onBack: () => void }) {
+function EmergencyFund({ userId, onBack, onXP }: { userId?: string; onBack: () => void; onXP: () => void }) {
   const [rent, setRent] = useState(0);
   const [utilities, setUtilities] = useState(0);
   const [food, setFood] = useState(0);
@@ -297,6 +306,7 @@ function EmergencyFund({ userId, onBack }: { userId?: string; onBack: () => void
     });
     setSaved(true);
     toast({ title: "Emergency fund plan saved!" });
+    onXP();
   }
 
   return (
@@ -374,7 +384,7 @@ const RISK_QUESTIONS = [
   { q: "How would you describe your investment experience?", options: ["None at all", "Some basic knowledge", "Moderate experience", "Very experienced"] },
 ];
 
-function RiskProfile({ userId, onBack }: { userId?: string; onBack: () => void }) {
+function RiskProfile({ userId, onBack, onXP }: { userId?: string; onBack: () => void; onXP: () => void }) {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [result, setResult] = useState<{ score: number; profile: string; description: string } | null>(null);
   const [saved, setSaved] = useState(false);
@@ -404,6 +414,7 @@ function RiskProfile({ userId, onBack }: { userId?: string; onBack: () => void }
     });
     setSaved(true);
     toast({ title: "Risk profile saved!" });
+    onXP();
   }
 
   if (result) {

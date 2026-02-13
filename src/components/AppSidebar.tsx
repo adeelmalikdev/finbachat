@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +33,17 @@ export function AppSidebar() {
   const location = useLocation();
   const { signOut, user } = useAuth();
   const { isAdmin, isExpert } = useUserRole();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("is_read", false)
+      .then(({ count }) => setUnreadCount(count ?? 0));
+  }, [user, location.pathname]);
 
   const mainItems = [
     { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -38,7 +51,7 @@ export function AppSidebar() {
     { title: "Simulations", icon: Gamepad2, path: "/simulations" },
     { title: "Tools", icon: Calculator, path: "/tools" },
     { title: "Learn", icon: BookOpen, path: "/learn" },
-    { title: "Notifications", icon: Bell, path: "/notifications" },
+    { title: unreadCount > 0 ? `Notifications (${unreadCount})` : "Notifications", icon: Bell, path: "/notifications" },
   ];
 
   const expertItems = [
