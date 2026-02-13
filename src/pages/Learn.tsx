@@ -17,7 +17,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
-import { BookOpen, Eye, Heart, Clock, Search, User, Play, Video, Plus, Trash2, Link } from "lucide-react";
+import { BookOpen, Eye, Heart, Clock, Search, User, Play, Video, Plus, Trash2, Link, Zap } from "lucide-react";
+import { useXP } from "@/hooks/useXP";
 import { toast } from "@/hooks/use-toast";
 
 // --- Types ---
@@ -71,6 +72,7 @@ function extractYouTubeId(url: string): string | null {
 export default function Learn() {
   const { user } = useAuth();
   const { isAdmin, isExpert } = useUserRole();
+  const { awardXP } = useXP();
   const canManage = isAdmin || isExpert;
 
   const [content, setContent] = useState<ContentItem[]>([]);
@@ -84,6 +86,7 @@ export default function Learn() {
   // Video state
   const [dbVideos, setDbVideos] = useState<VideoLesson[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<VideoLesson | null>(null);
+  const [watchedIds, setWatchedIds] = useState<Set<string>>(new Set());
   const [videoCategory, setVideoCategory] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
@@ -189,7 +192,7 @@ export default function Learn() {
       youtube_url: newUrl.trim(),
       youtube_id: parsedId,
       category: newCategory,
-      duration: newDuration.trim() || "Unknown",
+      duration: newDuration.trim() || "",
       difficulty: newDifficulty,
       added_by: user.id,
     });
@@ -277,7 +280,7 @@ export default function Learn() {
                 <Button variant="ghost" size="sm" onClick={() => setSelectedVideo(null)} className="text-muted-foreground gap-1">
                   ← Back to Videos
                 </Button>
-                {canManage && !selectedVideo.isDefault && (
+                {!selectedVideo.isDefault && (isAdmin || (isExpert && selectedVideo.added_by === user?.id)) && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" size="sm" className="gap-1"><Trash2 className="h-4 w-4" /> Remove</Button>
@@ -310,12 +313,36 @@ export default function Learn() {
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="secondary">{selectedVideo.category}</Badge>
                       <Badge variant="outline">{selectedVideo.difficulty}</Badge>
-                      {selectedVideo.duration && (
+                      {selectedVideo.duration && selectedVideo.duration !== "Unknown" && (
                         <span className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> {selectedVideo.duration}</span>
                       )}
                     </div>
-                    <h2 className="font-display text-xl font-bold">{selectedVideo.title}</h2>
-                    <p className="text-muted-foreground mt-1">{selectedVideo.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="font-display text-xl font-bold">{selectedVideo.title}</h2>
+                        <p className="text-muted-foreground mt-1">{selectedVideo.description}</p>
+                      </div>
+                      {user && !watchedIds.has(selectedVideo.id) && (
+                        <Button
+                          size="sm"
+                          className="gap-1.5 shrink-0"
+                          onClick={async () => {
+                            const result = await awardXP("video_watch", `Watched: ${selectedVideo!.title}`);
+                            if (result) {
+                              setWatchedIds((prev) => new Set(prev).add(selectedVideo!.id));
+                              toast({ title: `+${result.xpAmount} XP!`, description: `Earned for watching a video lesson.` });
+                            }
+                          }}
+                        >
+                          <Zap className="h-4 w-4" /> Claim 15 XP
+                        </Button>
+                      )}
+                      {watchedIds.has(selectedVideo.id) && (
+                        <Badge variant="outline" className="gap-1 text-green-600 shrink-0">
+                          <Zap className="h-3 w-3" /> XP Claimed
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -324,7 +351,7 @@ export default function Learn() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredVideos.map((video) => (
                 <Card key={video.id} className="cursor-pointer hover:shadow-md transition-shadow group relative" onClick={() => setSelectedVideo(video)}>
-                  {canManage && !video.isDefault && (
+                  {!video.isDefault && (isAdmin || (isExpert && video.added_by === user?.id)) && (
                     <button
                       className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-destructive/90 text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => { e.stopPropagation(); handleDeleteVideo(video.id); }}
@@ -345,7 +372,7 @@ export default function Learn() {
                           <Play className="h-5 w-5 text-primary-foreground ml-0.5" />
                         </div>
                       </div>
-                      {video.duration && (
+                      {video.duration && video.duration !== "Unknown" && (
                         <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
                           {video.duration}
                         </div>
