@@ -26,6 +26,8 @@ import {
   Shield,
   Users,
   LogOut,
+  Wallet,
+  Trophy,
 } from "lucide-react";
 
 export function AppSidebar() {
@@ -49,8 +51,10 @@ export function AppSidebar() {
     { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { title: "Assessments", icon: ClipboardCheck, path: "/assessments" },
     { title: "Simulations", icon: Gamepad2, path: "/simulations" },
+    { title: "Budget Sim", icon: Wallet, path: "/budget-simulator" },
     { title: "Tools", icon: Calculator, path: "/tools" },
     { title: "Learn", icon: BookOpen, path: "/learn" },
+    { title: "Leaderboard", icon: Trophy, path: "/leaderboard" },
     { title: unreadCount > 0 ? `Notifications (${unreadCount})` : "Notifications", icon: Bell, path: "/notifications" },
   ];
 

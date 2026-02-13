@@ -80,6 +80,92 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_sim_months: {
+        Row: {
+          allocations: Json
+          balance_after: number
+          balance_before: number
+          created_at: string
+          id: string
+          life_event: Json | null
+          month_number: number
+          savings_total: number
+          session_id: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          allocations?: Json
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          id?: string
+          life_event?: Json | null
+          month_number: number
+          savings_total?: number
+          session_id: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          allocations?: Json
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          id?: string
+          life_event?: Json | null
+          month_number?: number
+          savings_total?: number
+          session_id?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_sim_months_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "budget_sim_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_sim_sessions: {
+        Row: {
+          behavior_type: string | null
+          completed_at: string | null
+          created_at: string
+          current_month: number
+          id: string
+          monthly_income: number
+          status: string
+          total_xp_earned: number
+          user_id: string
+        }
+        Insert: {
+          behavior_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_month?: number
+          id?: string
+          monthly_income?: number
+          status?: string
+          total_xp_earned?: number
+          user_id: string
+        }
+        Update: {
+          behavior_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_month?: number
+          id?: string
+          monthly_income?: number
+          status?: string
+          total_xp_earned?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -342,6 +428,7 @@ export type Database = {
       user_progress: {
         Row: {
           badges_earned: string[] | null
+          behavior_type: string | null
           created_at: string
           financial_health_score: number | null
           id: string
@@ -352,6 +439,7 @@ export type Database = {
         }
         Insert: {
           badges_earned?: string[] | null
+          behavior_type?: string | null
           created_at?: string
           financial_health_score?: number | null
           id?: string
@@ -362,6 +450,7 @@ export type Database = {
         }
         Update: {
           badges_earned?: string[] | null
+          behavior_type?: string | null
           created_at?: string
           financial_health_score?: number | null
           id?: string
