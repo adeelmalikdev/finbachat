@@ -13,8 +13,8 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+  SidebarMenuItem } from
+"@/components/ui/sidebar";
 import {
   LayoutDashboard,
   ClipboardCheck,
@@ -26,9 +26,9 @@ import {
   Shield,
   Users,
   LogOut,
-  
-  Trophy,
-} from "lucide-react";
+
+  Trophy } from
+"lucide-react";
 
 export function AppSidebar() {
   const navigate = useNavigate();
@@ -39,37 +39,37 @@ export function AppSidebar() {
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("is_read", false)
-      .then(({ count }) => setUnreadCount(count ?? 0));
+    supabase.
+    from("notifications").
+    select("id", { count: "exact", head: true }).
+    eq("user_id", user.id).
+    eq("is_read", false).
+    then(({ count }) => setUnreadCount(count ?? 0));
   }, [user, location.pathname]);
 
   const mainItems = [
-    { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    { title: "Assessments", icon: ClipboardCheck, path: "/assessments" },
-    { title: "Simulations", icon: Gamepad2, path: "/simulations" },
-    { title: "Tools", icon: Calculator, path: "/tools" },
-    { title: "Learn", icon: BookOpen, path: "/learn" },
-    { title: "Leaderboard", icon: Trophy, path: "/leaderboard" },
-    { title: unreadCount > 0 ? `Notifications (${unreadCount})` : "Notifications", icon: Bell, path: "/notifications" },
-  ];
+  { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { title: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+  { title: "Simulations", icon: Gamepad2, path: "/simulations" },
+  { title: "Tools", icon: Calculator, path: "/tools" },
+  { title: "Learn", icon: BookOpen, path: "/learn" },
+  { title: "Leaderboard", icon: Trophy, path: "/leaderboard" },
+  { title: unreadCount > 0 ? `Notifications (${unreadCount})` : "Notifications", icon: Bell, path: "/notifications" }];
+
 
   const expertItems = [
-    { title: "My Content", icon: BookOpen, path: "/expert/content" },
-  ];
+  { title: "My Content", icon: BookOpen, path: "/expert/content" }];
+
 
   const adminItems = [
-    { title: "User Management", icon: Users, path: "/admin/users" },
-    { title: "Moderation", icon: Shield, path: "/admin/moderation" },
-  ];
+  { title: "User Management", icon: Users, path: "/admin/users" },
+  { title: "Moderation", icon: Shield, path: "/admin/moderation" }];
+
 
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <h1 className="font-display text-xl font-bold text-sidebar-primary-foreground">FinLit</h1>
+        <h1 className="font-display text-xl font-bold text-sidebar-primary-foreground">Finbachat</h1>
         <p className="text-xs text-sidebar-foreground/50">Financial Literacy</p>
       </SidebarHeader>
       <SidebarContent>
@@ -77,62 +77,62 @@ export function AppSidebar() {
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
+              {mainItems.map((item) =>
+              <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
-                    isActive={location.pathname === item.path}
-                    onClick={() => navigate(item.path)}
-                  >
+                  isActive={location.pathname === item.path}
+                  onClick={() => navigate(item.path)}>
+
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {(isExpert || isAdmin) && (
-          <SidebarGroup>
+        {(isExpert || isAdmin) &&
+        <SidebarGroup>
             <SidebarGroupLabel>Expert</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {expertItems.map((item) => (
-                  <SidebarMenuItem key={item.path}>
+                {expertItems.map((item) =>
+              <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
-                      isActive={location.pathname === item.path}
-                      onClick={() => navigate(item.path)}
-                    >
+                  isActive={location.pathname === item.path}
+                  onClick={() => navigate(item.path)}>
+
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
+              )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        )}
+        }
 
-        {isAdmin && (
-          <SidebarGroup>
+        {isAdmin &&
+        <SidebarGroup>
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {adminItems.map((item) => (
-                  <SidebarMenuItem key={item.path}>
+                {adminItems.map((item) =>
+              <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
-                      isActive={location.pathname === item.path}
-                      onClick={() => navigate(item.path)}
-                    >
+                  isActive={location.pathname === item.path}
+                  onClick={() => navigate(item.path)}>
+
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
+              )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        )}
+        }
       </SidebarContent>
       <SidebarFooter className="p-4">
         <SidebarMenu>
@@ -150,6 +150,6 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-    </Sidebar>
-  );
+    </Sidebar>);
+
 }
