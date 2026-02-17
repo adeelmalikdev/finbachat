@@ -20,8 +20,8 @@ export default function Auth() {
       {/* Left panel - branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar text-sidebar-foreground flex-col justify-between p-12">
         <div>
-          <h1 className="font-display text-3xl font-bold text-sidebar-primary-foreground">
-            FinLit
+          <h1 className="font-display text-3xl font-bold text-sidebar-primary-foreground">FinBachat
+
           </h1>
           <p className="mt-1 text-sm text-sidebar-foreground/60">Financial Literacy Platform</p>
         </div>
@@ -30,7 +30,7 @@ export default function Auth() {
           <Feature icon={Shield} title="Build Confidence" desc="Assessments to measure your financial knowledge" />
           <Feature icon={Target} title="Practical Tools" desc="Budget planners, savings calculators, and more" />
         </div>
-        <p className="text-xs text-sidebar-foreground/40">© 2026 FinLit. All rights reserved.</p>
+        <p className="text-xs text-sidebar-foreground/40">© 2026 FinBachat. All rights reserved.</p>
       </div>
 
       {/* Right panel - auth forms */}
@@ -49,11 +49,11 @@ export default function Auth() {
           </Tabs>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
-function Feature({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
+function Feature({ icon: Icon, title, desc }: {icon: any;title: string;desc: string;}) {
   return (
     <div className="flex gap-4 items-start">
       <div className="rounded-lg bg-sidebar-accent p-2.5">
@@ -63,8 +63,8 @@ function Feature({ icon: Icon, title, desc }: { icon: any; title: string; desc: 
         <h3 className="font-display font-semibold text-sidebar-primary-foreground">{title}</h3>
         <p className="text-sm text-sidebar-foreground/60">{desc}</p>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 function LoginForm() {
@@ -102,8 +102,8 @@ function LoginForm() {
           </Button>
         </form>
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 }
 
 function RegisterForm() {
@@ -150,6 +150,6 @@ function RegisterForm() {
           </Button>
         </form>
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 }
