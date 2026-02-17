@@ -69,7 +69,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <h1 className="font-display text-xl font-bold text-sidebar-primary-foreground">Finbachat</h1>
+        <h1 className="font-display text-xl font-bold text-sidebar-primary-foreground">FinBachat</h1>
         <p className="text-xs text-sidebar-foreground/50">Financial Literacy</p>
       </SidebarHeader>
       <SidebarContent>
