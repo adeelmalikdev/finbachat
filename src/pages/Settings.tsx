@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export default function Settings() {
+  usePageTitle("Settings");
   const { user, signOut } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");

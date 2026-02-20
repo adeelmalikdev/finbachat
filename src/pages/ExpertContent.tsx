@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function ExpertContent() {
+  usePageTitle("Expert Content");
   const { user } = useAuth();
   const [articles, setArticles] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);

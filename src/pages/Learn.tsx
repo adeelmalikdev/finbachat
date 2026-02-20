@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +68,7 @@ function extractYouTubeId(url: string): string | null {
 }
 
 export default function Learn() {
+  usePageTitle("Learn");
   const { user } = useAuth();
   const { isAdmin, isExpert } = useUserRole();
   const { awardXP } = useXP();

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ const STATUS_COLORS: Record<string, "default" | "secondary" | "destructive" | "o
 };
 
 export default function AdminModeration() {
+  usePageTitle("Moderation");
   const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewItem, setPreviewItem] = useState<ContentItem | null>(null);
