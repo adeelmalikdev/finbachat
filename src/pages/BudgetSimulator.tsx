@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +83,7 @@ function formatRs(amount: number): string {
 }
 
 export default function BudgetSimulator() {
+  usePageTitle("Budget Simulator");
   const { user } = useAuth();
   const { awardXP } = useXP();
   const [view, setView] = useState<ViewState>("menu");

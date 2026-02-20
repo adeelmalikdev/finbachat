@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -38,6 +39,7 @@ type Difficulty = "easy" | "medium" | "hard" | "mixed";
 const QUESTIONS_PER_ASSESSMENT = 15;
 
 export default function Assessments() {
+  usePageTitle("Assessments");
   const { user } = useAuth();
   const { awardXP } = useXP();
   const [view, setView] = useState<ViewState>("landing");

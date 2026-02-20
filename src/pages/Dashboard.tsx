@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -38,6 +39,7 @@ interface RecentActivity {
 }
 
 export default function Dashboard() {
+  usePageTitle("Dashboard");
   const { user } = useAuth();
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);

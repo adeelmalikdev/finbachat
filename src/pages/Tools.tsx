@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,7 @@ const TOOL_META = [
 ];
 
 export default function Tools() {
+  usePageTitle("Tools");
   const { user } = useAuth();
   const { awardXP } = useXP();
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);

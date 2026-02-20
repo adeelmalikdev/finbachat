@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +24,7 @@ const TYPE_ICONS: Record<string, React.ElementType> = {
 };
 
 export default function Notifications() {
+  usePageTitle("Notifications");
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
