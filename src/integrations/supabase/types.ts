@@ -287,28 +287,76 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age_range: string | null
           avatar_url: string | null
           bio: string | null
+          city: string | null
+          content_preference: string | null
           created_at: string
+          daily_goal_minutes: number | null
           display_name: string | null
+          employment_status: string | null
+          experience_level: string | null
+          financial_goals: string[] | null
+          gender: string | null
           id: string
+          income_range: string | null
+          notify_badges: boolean | null
+          notify_content: boolean | null
+          notify_leaderboard: boolean | null
+          notify_streak: boolean | null
+          notify_weekly: boolean | null
+          preferred_difficulty: string | null
           updated_at: string
+          username: string | null
         }
         Insert: {
+          age_range?: string | null
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
+          content_preference?: string | null
           created_at?: string
+          daily_goal_minutes?: number | null
           display_name?: string | null
+          employment_status?: string | null
+          experience_level?: string | null
+          financial_goals?: string[] | null
+          gender?: string | null
           id: string
+          income_range?: string | null
+          notify_badges?: boolean | null
+          notify_content?: boolean | null
+          notify_leaderboard?: boolean | null
+          notify_streak?: boolean | null
+          notify_weekly?: boolean | null
+          preferred_difficulty?: string | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
+          age_range?: string | null
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
+          content_preference?: string | null
           created_at?: string
+          daily_goal_minutes?: number | null
           display_name?: string | null
+          employment_status?: string | null
+          experience_level?: string | null
+          financial_goals?: string[] | null
+          gender?: string | null
           id?: string
+          income_range?: string | null
+          notify_badges?: boolean | null
+          notify_content?: boolean | null
+          notify_leaderboard?: boolean | null
+          notify_streak?: boolean | null
+          notify_weekly?: boolean | null
+          preferred_difficulty?: string | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
