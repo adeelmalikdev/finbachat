@@ -10,7 +10,7 @@ const featured = {
 const testimonials = [
   {
     name: "Sana Khan",
-    role: "Freelance Designer",
+    role: "",
     text: "The Emergency Fund Calculator showed me exactly how long it would take. I went from zero savings to 2 months of expenses in just 4 months.",
     avatar: "S",
   },
