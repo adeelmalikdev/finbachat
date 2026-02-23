@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,16 @@ export default function Auth() {
   if (user) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background">
       {/* Left panel - branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar text-sidebar-foreground flex-col justify-between p-12">
         <div>
-          <h1 className="font-display text-3xl font-bold text-sidebar-primary-foreground">FinBachat</h1>
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary font-display text-sm font-bold text-primary-foreground">
+              FB
+            </div>
+            <span className="font-display text-2xl font-bold text-sidebar-primary-foreground">FinBachat</span>
+          </div>
           <p className="mt-1 text-sm text-sidebar-foreground/60">Financial Literacy Platform</p>
         </div>
         <div className="space-y-8">
@@ -39,7 +44,12 @@ export default function Auth() {
       <div className="flex w-full lg:w-1/2 items-center justify-center p-6">
         <div className="w-full max-w-md">
           <div className="mb-8 lg:hidden">
-            <h1 className="font-display text-2xl font-bold text-primary">FinBachat</h1>
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary font-display text-sm font-bold text-primary-foreground">
+                FB
+              </div>
+              <span className="font-display text-2xl font-bold text-foreground">FinBachat</span>
+            </div>
           </div>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -58,8 +68,8 @@ export default function Auth() {
 function Feature({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
   return (
     <div className="flex gap-4 items-start">
-      <div className="rounded-lg bg-sidebar-accent p-2.5">
-        <Icon className="h-5 w-5 text-sidebar-primary" />
+      <div className="rounded-lg bg-primary/10 p-2.5">
+        <Icon className="h-5 w-5 text-primary" />
       </div>
       <div>
         <h3 className="font-display font-semibold text-sidebar-primary-foreground">{title}</h3>
@@ -198,7 +208,7 @@ function LoginForm() {
             </div>
             <PasswordInput id="login-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)] transition-shadow" disabled={loading}>
             {loading ? "Signing in…" : "Sign In"}
           </Button>
         </form>
@@ -246,7 +256,7 @@ function RegisterForm() {
             <Label htmlFor="reg-password">Password</Label>
             <PasswordInput id="reg-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)] transition-shadow" disabled={loading}>
             {loading ? "Creating account…" : "Create Account"}
           </Button>
         </form>

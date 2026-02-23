@@ -18,12 +18,12 @@ import SavingsGoalPlanner from "@/components/tools/SavingsGoalPlanner";
 type ActiveTool = null | "budget" | "cashflow" | "emergency" | "debt" | "inflation" | "savings";
 
 const TOOL_META = [
-  { id: "budget" as const, title: "Smart Budget Builder", desc: "Create budget clarity in under 5 minutes with sliders, pie charts, and health scores", icon: Calculator, color: "text-primary" },
-  { id: "cashflow" as const, title: "Weekly Cash Flow Tracker", desc: "Prevent silent overspending with weekly targets and category tracking", icon: CalendarClock, color: "text-accent" },
-  { id: "emergency" as const, title: "Emergency Fund Calculator", desc: "Build safety buffer awareness with milestones and progress tracking", icon: ShieldCheck, color: "text-warning" },
-  { id: "debt" as const, title: "Debt Control Planner", desc: "See the true cost of delay with side-by-side payment comparisons", icon: CreditCard, color: "text-destructive" },
-  { id: "inflation" as const, title: "Inflation Impact Tool", desc: "Visualize silent wealth erosion — cash vs invested over time", icon: TrendingDown, color: "text-destructive" },
-  { id: "savings" as const, title: "Savings Goal Planner", desc: "Convert dreams into numbers with feasibility scores and timelines", icon: Target, color: "text-primary" },
+  { id: "budget" as const, title: "Smart Budget Builder", desc: "Create budget clarity in under 5 minutes with sliders, pie charts, and health scores", icon: Calculator },
+  { id: "cashflow" as const, title: "Weekly Cash Flow Tracker", desc: "Prevent silent overspending with weekly targets and category tracking", icon: CalendarClock },
+  { id: "emergency" as const, title: "Emergency Fund Calculator", desc: "Build safety buffer awareness with milestones and progress tracking", icon: ShieldCheck },
+  { id: "debt" as const, title: "Debt Control Planner", desc: "See the true cost of delay with side-by-side payment comparisons", icon: CreditCard },
+  { id: "inflation" as const, title: "Inflation Impact Tool", desc: "Visualize silent wealth erosion — cash vs invested over time", icon: TrendingDown },
+  { id: "savings" as const, title: "Savings Goal Planner", desc: "Convert dreams into numbers with feasibility scores and timelines", icon: Target },
 ];
 
 export default function Tools() {
@@ -56,12 +56,12 @@ export default function Tools() {
         {TOOL_META.map((tool) => (
           <Card
             key={tool.id}
-            className="cursor-pointer transition-all hover:shadow-md hover:border-primary/40 group"
+            className="cursor-pointer card-hover group"
             onClick={() => setActiveTool(tool.id)}
           >
             <CardHeader>
-              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center mb-2 group-hover:bg-primary/10 transition-colors">
-                <tool.icon className={`h-5 w-5 ${tool.color}`} />
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
+                <tool.icon className="h-5 w-5 text-primary" />
               </div>
               <CardTitle className="font-display text-base">{tool.title}</CardTitle>
               <CardDescription className="text-xs">{tool.desc}</CardDescription>

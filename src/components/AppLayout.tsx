@@ -8,7 +8,7 @@ export function AppLayout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
@@ -18,10 +18,10 @@ export function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
         <main className="flex-1 overflow-auto">
-          <div className="flex items-center gap-2 border-b px-6 py-3">
+          <div className="flex items-center gap-2 border-b border-border/50 px-6 py-3">
             <SidebarTrigger />
           </div>
           <div className="p-6">

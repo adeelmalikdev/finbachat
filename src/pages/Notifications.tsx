@@ -79,15 +79,19 @@ export default function Notifications() {
           {notifications.map((n) => {
             const Icon = TYPE_ICONS[n.type] || Bell;
             return (
-              <Card key={n.id} className={n.is_read ? "opacity-60" : ""}>
+              <Card key={n.id} className={`transition-all ${n.is_read ? "opacity-60" : "border-l-2 border-l-primary"}`}>
                 <CardContent className="flex items-start gap-3 pt-4">
-                  <div className="rounded-lg bg-muted p-2 mt-0.5">
+                  <div className="rounded-lg bg-primary/10 p-2 mt-0.5">
                     <Icon className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-sm">{n.title}</p>
-                      {!n.is_read && <Badge variant="default" className="text-[10px] px-1.5 py-0">New</Badge>}
+                      {!n.is_read && (
+                        <span className="inline-flex items-center rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 text-[10px] font-medium text-primary">
+                          New
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
                     <p className="text-xs text-muted-foreground mt-1">
