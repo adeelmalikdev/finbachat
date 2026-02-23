@@ -467,36 +467,6 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* ===== LEADERBOARD TEASER ===== */}
-      <Card className="border-border/50">
-        <CardContent className="py-4 px-6">
-          <div className="flex items-center gap-4">
-            <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-              <Users className="h-4 w-4 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">
-                📊 Weekly Leaderboard — <span className="text-primary">You're ranked #{Math.floor(Math.random() * 50) + 10}</span> this week
-              </p>
-              <div className="flex items-center gap-3 mt-1">
-                {["AR", "SK", "MH"].map((initials, i) => (
-                  <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                      i === 0 ? "bg-amber-500/20 text-amber-400" : "bg-secondary text-muted-foreground"
-                    }`}>
-                      {initials}
-                    </div>
-                    <span>#{i + 1}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <Button variant="ghost" size="sm" className="text-primary text-xs gap-1 shrink-0">
-              View <ArrowRight className="h-3 w-3" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
