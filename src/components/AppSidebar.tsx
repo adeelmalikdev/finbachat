@@ -25,10 +25,8 @@ import {
   Settings,
   Shield,
   Users,
-  LogOut,
-
-  Trophy } from
-"lucide-react";
+  LogOut
+} from "lucide-react";
 
 export function AppSidebar() {
   const navigate = useNavigate();
@@ -52,9 +50,8 @@ export function AppSidebar() {
   { title: "Assessments", icon: ClipboardCheck, path: "/assessments" },
   { title: "Simulations", icon: Gamepad2, path: "/simulations" },
   { title: "Tools", icon: Calculator, path: "/tools" },
-  { title: "Learn", icon: BookOpen, path: "/learn" },
-  { title: "Leaderboard", icon: Trophy, path: "/leaderboard" },
-  { title: unreadCount > 0 ? `Notifications (${unreadCount})` : "Notifications", icon: Bell, path: "/notifications" }];
+   { title: "Learn", icon: BookOpen, path: "/learn" },
+   { title: unreadCount > 0 ? `Notifications (${unreadCount})` : "Notifications", icon: Bell, path: "/notifications" }];
 
 
   const expertItems = [
