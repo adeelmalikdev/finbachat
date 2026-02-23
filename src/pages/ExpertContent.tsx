@@ -14,6 +14,7 @@ import { BookOpen, Plus, Pencil, Trash2, Eye, Heart, Clock, Send, FileText } fro
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/errorHandler";
 
 interface ContentItem {
   id: string;
@@ -96,13 +97,13 @@ export default function ExpertContent() {
         .from("expert_content")
         .update({ title, body, category: category || null, status })
         .eq("id", editing.id);
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
+      if (error) { console.error("Content update failed:", error); toast({ title: "Error", description: getSafeErrorMessage(error), variant: "destructive" }); }
       else { toast({ title: status === "pending_review" ? "Submitted for review!" : "Draft saved!" }); }
     } else {
       const { error } = await supabase
         .from("expert_content")
         .insert({ author_id: user.id, title, body, category: category || null, status });
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
+      if (error) { console.error("Content insert failed:", error); toast({ title: "Error", description: getSafeErrorMessage(error), variant: "destructive" }); }
       else { toast({ title: status === "pending_review" ? "Submitted for review!" : "Draft saved!" }); }
     }
 

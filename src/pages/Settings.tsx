@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { getSafeErrorMessage } from "@/lib/errorHandler";
 
 export default function Settings() {
   usePageTitle("Settings");
@@ -31,7 +32,7 @@ export default function Settings() {
     if (!user) return;
     setSaving(true);
     const { error } = await supabase.from("profiles").update({ display_name: displayName, bio }).eq("id", user.id);
-    if (error) toast.error(error.message);
+    if (error) { console.error("Profile update failed:", error); toast.error(getSafeErrorMessage(error)); }
     else toast.success("Profile updated!");
     setSaving(false);
   };

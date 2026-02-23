@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useXP } from "@/hooks/useXP";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/errorHandler";
 import type { Json } from "@/integrations/supabase/types";
 
 interface Question {
@@ -170,7 +171,8 @@ export default function Assessments() {
       .single();
 
     if (error) {
-      toast({ title: "Error saving assessment", description: error.message, variant: "destructive" });
+      console.error("Assessment save failed:", error);
+      toast({ title: "Error saving assessment", description: getSafeErrorMessage(error), variant: "destructive" });
       setSubmitting(false);
       return;
     }
