@@ -17,7 +17,7 @@ export function LandingFooter() {
           <nav className="flex flex-wrap gap-6 text-sm text-sidebar-foreground/60">
             <a href="#features" className="hover:text-accent transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-accent transition-colors">How It Works</a>
-            <a href="#leaderboard" className="hover:text-accent transition-colors">Leaderboard</a>
+            <a href="#how-it-works" className="hover:text-accent transition-colors">How It Works</a>
             <a href="#testimonials" className="hover:text-accent transition-colors">Testimonials</a>
             <Link to="/auth" className="hover:text-accent transition-colors">Sign In</Link>
           </nav>

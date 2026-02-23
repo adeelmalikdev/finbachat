@@ -3,7 +3,6 @@ import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
-import { LeaderboardSection } from "@/components/landing/LeaderboardSection";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
 import { CTASection } from "@/components/landing/CTASection";
 import { LandingFooter } from "@/components/landing/LandingFooter";
@@ -17,7 +16,6 @@ export default function Landing() {
       <HeroSection />
       <FeaturesSection />
       <HowItWorksSection />
-      <LeaderboardSection />
       <SocialProofSection />
       <CTASection />
       <LandingFooter />

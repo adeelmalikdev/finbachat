@@ -12,7 +12,7 @@ export function LandingNav() {
           <span className="font-display text-xl font-bold text-sidebar-primary-foreground">FinBachat</span>
         </div>
         <nav className="hidden md:flex items-center gap-8">
-          {["Features", "How It Works", "Leaderboard", "Testimonials"].map((item) => (
+          {["Features", "How It Works", "Testimonials"].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}

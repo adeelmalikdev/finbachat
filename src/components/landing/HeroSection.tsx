@@ -128,15 +128,6 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* Trusted-by strip */}
-        <div className="mt-20 border-t border-sidebar-border pt-8">
-          <p className="text-xs text-sidebar-foreground/30 uppercase tracking-widest mb-4">Trusted by learners at</p>
-          <div className="flex items-center gap-10 opacity-20">
-            {["LUMS", "NUST", "IBA", "FAST", "GIK", "UET"].map((name) => (
-              <span key={name} className="font-display text-lg font-bold text-sidebar-foreground">{name}</span>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );
