@@ -45,7 +45,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [allBadges, setAllBadges] = useState<BadgeInfo[]>([]);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
-  const [streakDays] = useState(() => Math.floor(Math.random() * 7) + 1); // placeholder
+  const [streakDays] = useState(() => Math.floor(Math.random() * 7) + 1);
 
   useEffect(() => {
     if (!user) return;
@@ -81,7 +81,7 @@ export default function Dashboard() {
   const nextBadge = allBadges.find((b) => !earnedBadgeIds.has(b.id));
 
   const healthScore = progress?.financial_health_score ?? 0;
-  const healthColor = healthScore >= 70 ? "text-accent" : healthScore >= 40 ? "text-[hsl(var(--warning))]" : "text-destructive";
+  const healthColor = healthScore >= 70 ? "text-primary" : healthScore >= 40 ? "text-[hsl(var(--warning))]" : "text-destructive";
   const healthLabel = healthScore >= 70 ? "Excellent" : healthScore >= 40 ? "Good" : "Needs Work";
 
   const greeting = (() => {
@@ -102,13 +102,14 @@ export default function Dashboard() {
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5">
             <Flame className="h-4 w-4 text-[hsl(var(--warning))]" />
-            <span className="font-medium">{streakDays}-day streak</span>
+            <span className="text-sm font-medium">{streakDays}-day streak</span>
           </div>
-          <Badge variant="secondary" className="gap-1 font-display">
-            <GraduationCap className="h-3 w-3" /> Level {currentLevel}
-          </Badge>
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5">
+            <GraduationCap className="h-3.5 w-3.5 text-primary" />
+            <span className="text-sm font-display font-semibold">Level {currentLevel}</span>
+          </div>
         </div>
       </div>
 
@@ -136,38 +137,10 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={TrendingUp}
-          label="Financial Health"
-          value={`${healthScore}%`}
-          sub={healthLabel}
-          iconBg="bg-accent/10"
-          iconColor={healthColor}
-        />
-        <StatCard
-          icon={Award}
-          label="Badges Earned"
-          value={`${earnedBadges.length}`}
-          sub={`of ${allBadges.length} available`}
-          iconBg="bg-[hsl(var(--warning))]/10"
-          iconColor="text-[hsl(var(--warning))]"
-        />
-        <StatCard
-          icon={Target}
-          label="Level"
-          value={`${currentLevel}`}
-          sub={`${currentXP.toLocaleString()} total XP`}
-          iconBg="bg-primary/10"
-          iconColor="text-primary"
-        />
-        <StatCard
-          icon={Trophy}
-          label="Next Badge"
-          value={nextBadge ? `${nextBadge.xp_required} XP` : "All earned!"}
-          sub={nextBadge?.name ?? "Congratulations"}
-          iconBg="bg-[hsl(var(--info))]/10"
-          iconColor="text-[hsl(var(--info))]"
-        />
+        <StatCard icon={TrendingUp} label="Financial Health" value={`${healthScore}%`} sub={healthLabel} iconColor={healthColor} />
+        <StatCard icon={Award} label="Badges Earned" value={`${earnedBadges.length}`} sub={`of ${allBadges.length} available`} iconColor="text-[hsl(var(--warning))]" />
+        <StatCard icon={Target} label="Level" value={`${currentLevel}`} sub={`${currentXP.toLocaleString()} total XP`} iconColor="text-primary" />
+        <StatCard icon={Trophy} label="Next Badge" value={nextBadge ? `${nextBadge.xp_required} XP` : "All earned!"} sub={nextBadge?.name ?? "Congratulations"} iconColor="text-[hsl(var(--info))]" />
       </div>
 
       {/* Main content grid */}
@@ -180,34 +153,10 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 sm:grid-cols-2">
-              <QuickActionCard
-                icon={BarChart3}
-                title="Take Assessment"
-                description="Evaluate your financial knowledge and earn 100 XP"
-                href="/assessments"
-                xp={100}
-              />
-              <QuickActionCard
-                icon={Target}
-                title="Run Simulation"
-                description="Practice real-world financial decisions for 75 XP"
-                href="/simulations"
-                xp={75}
-              />
-              <QuickActionCard
-                icon={Wrench}
-                title="Financial Tools"
-                description="Budget planner, savings calculator & more for 25 XP"
-                href="/tools"
-                xp={25}
-              />
-              <QuickActionCard
-                icon={BookOpen}
-                title="Learn"
-                description="Watch videos and read expert articles for 15 XP"
-                href="/learn"
-                xp={15}
-              />
+              <QuickActionCard icon={BarChart3} title="Take Assessment" description="Evaluate your financial knowledge and earn 100 XP" href="/assessments" xp={100} />
+              <QuickActionCard icon={Target} title="Run Simulation" description="Practice real-world financial decisions for 75 XP" href="/simulations" xp={75} />
+              <QuickActionCard icon={Wrench} title="Financial Tools" description="Budget planner, savings calculator & more for 25 XP" href="/tools" xp={25} />
+              <QuickActionCard icon={BookOpen} title="Learn" description="Watch videos and read expert articles for 15 XP" href="/learn" xp={15} />
             </div>
           </CardContent>
         </Card>
@@ -229,7 +178,7 @@ export default function Dashboard() {
                 {recentActivities.map((activity, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <div className={`mt-0.5 rounded-full p-1.5 ${
-                      activity.type === "assessment" ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"
+                      activity.type === "assessment" ? "bg-primary/10 text-primary" : "bg-primary/10 text-primary"
                     }`}>
                       {activity.type === "assessment" ? <BarChart3 className="h-3.5 w-3.5" /> : <Target className="h-3.5 w-3.5" />}
                     </div>
@@ -290,20 +239,18 @@ function StatCard({
   label,
   value,
   sub,
-  iconBg,
   iconColor,
 }: {
   icon: any;
   label: string;
   value: string;
   sub: string;
-  iconBg: string;
   iconColor: string;
 }) {
   return (
-    <Card>
+    <Card className="card-hover">
       <CardContent className="flex items-center gap-4 pt-6">
-        <div className={`rounded-xl p-3 ${iconBg}`}>
+        <div className="rounded-xl bg-primary/10 p-3">
           <Icon className={`h-5 w-5 ${iconColor}`} />
         </div>
         <div>
@@ -332,7 +279,7 @@ function QuickActionCard({
   return (
     <Link
       to={href}
-      className="group flex items-start gap-3 rounded-xl border p-4 transition-all hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm"
+      className="group flex items-start gap-3 rounded-xl border border-border p-4 transition-all duration-300 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_8px_30px_hsl(var(--primary)/0.08)]"
     >
       <div className="rounded-lg bg-primary/10 p-2.5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
         <Icon className="h-5 w-5" />
@@ -340,9 +287,9 @@ function QuickActionCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <p className="font-display font-semibold text-sm">{title}</p>
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0 gap-0.5">
+          <span className="inline-flex items-center gap-0.5 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary shrink-0">
             <Zap className="h-2.5 w-2.5" /> {xp}
-          </Badge>
+          </span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{description}</p>
       </div>

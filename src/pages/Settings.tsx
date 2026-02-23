@@ -48,7 +48,7 @@ export default function Settings() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Email</Label>
-            <Input value={user?.email ?? ""} disabled />
+            <Input value={user?.email ?? ""} disabled className="opacity-60" />
           </div>
           <div className="space-y-2">
             <Label>Display Name</Label>
@@ -58,7 +58,7 @@ export default function Settings() {
             <Label>Bio</Label>
             <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
           </div>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving} className="shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)] transition-shadow">
             {saving ? "Saving…" : "Save Changes"}
           </Button>
         </CardContent>
