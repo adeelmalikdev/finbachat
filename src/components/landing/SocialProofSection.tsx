@@ -92,17 +92,6 @@ export function SocialProofSection() {
           </div>
         </div>
 
-        {/* Stats bar */}
-        <div className="mt-12 rounded-xl border border-sidebar-border bg-sidebar-accent p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x md:divide-sidebar-border">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="font-display text-3xl font-bold text-accent">{stat.value}</p>
-                <p className="text-sm text-sidebar-foreground/60 mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );
