@@ -19,6 +19,7 @@ import ExpertContent from "@/pages/ExpertContent";
 import AdminUsers from "@/pages/AdminUsers";
 import AdminModeration from "@/pages/AdminModeration";
 import Leaderboard from "@/pages/Leaderboard";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,9 +32,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/assessments" element={<Assessments />} />
