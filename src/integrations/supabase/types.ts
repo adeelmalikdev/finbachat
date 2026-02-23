@@ -523,17 +523,7 @@ export type Database = {
       }
     }
     Views: {
-      leaderboard_view: {
-        Row: {
-          avatar_url: string | null
-          badges_earned: string[] | null
-          display_name: string | null
-          level: number | null
-          user_id: string | null
-          xp: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       decrement_likes: { Args: { _content_id: string }; Returns: undefined }
