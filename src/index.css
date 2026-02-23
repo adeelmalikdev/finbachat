@@ -125,3 +125,18 @@
     font-family: 'Space Grotesk', sans-serif;
   }
 }
+
+/* Landing page animations */
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 30px hsl(var(--accent) / 0.3); }
+  50% { box-shadow: 0 0 50px hsl(var(--accent) / 0.5); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
