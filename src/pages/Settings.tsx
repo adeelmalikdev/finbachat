@@ -121,8 +121,8 @@ export default function Settings() {
     if (!user) return;
     const load = async () => {
       const [profileRes, progressRes, badgesRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user.id).single(),
-        supabase.from("user_progress").select("xp, level, badges_earned").eq("user_id", user.id).single(),
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase.from("user_progress").select("xp, level, badges_earned").eq("user_id", user.id).maybeSingle(),
         supabase.from("badges").select("id, name, icon, xp_required").order("xp_required"),
       ]);
       if (profileRes.data) {
@@ -170,7 +170,7 @@ export default function Settings() {
   // ── Update helpers ──
   const updateFields = async (fields: Record<string, any>) => {
     if (!user) return false;
-    const { error } = await supabase.from("profiles").update(fields).eq("id", user.id);
+    const { error } = await supabase.from("profiles").upsert({ id: user.id, ...fields }).eq("id", user.id);
     if (error) { toast.error(getSafeErrorMessage(error)); return false; }
     return true;
   };
