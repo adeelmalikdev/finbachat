@@ -21,6 +21,7 @@ import {
 import { BookOpen, Eye, Heart, Clock, Search, User, Play, Video, Plus, Trash2, Link, Zap } from "lucide-react";
 import { useXP } from "@/hooks/useXP";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/errorHandler";
 
 // --- Types ---
 interface VideoLesson {
@@ -198,7 +199,8 @@ export default function Learn() {
     });
 
     if (error) {
-      toast({ title: "Error adding video", description: error.message, variant: "destructive" });
+      console.error("Add video failed:", error);
+      toast({ title: "Error adding video", description: getSafeErrorMessage(error), variant: "destructive" });
     } else {
       toast({ title: "Video added!", description: "The video lesson has been added successfully." });
       resetForm();
@@ -218,7 +220,8 @@ export default function Learn() {
     }
     const { error } = await supabase.from("video_lessons").delete().eq("id", video.id);
     if (error) {
-      toast({ title: "Error deleting video", description: error.message, variant: "destructive" });
+      console.error("Delete video failed:", error);
+      toast({ title: "Error deleting video", description: getSafeErrorMessage(error), variant: "destructive" });
     } else {
       toast({ title: "Video removed" });
       setSelectedVideo(null);

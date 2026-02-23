@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { getSafeErrorMessage } from "@/lib/errorHandler";
 import { TrendingUp, Shield, Target, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -105,7 +106,8 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
-      toast.error(error.message);
+      console.error("Password reset failed:", error);
+      toast.error(getSafeErrorMessage(error));
     } else {
       setSent(true);
     }
@@ -167,7 +169,7 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     const { error } = await signIn(email, password);
-    if (error) toast.error(error.message);
+    if (error) { console.error("Sign in failed:", error); toast.error(getSafeErrorMessage(error)); }
     setLoading(false);
   };
 
@@ -217,7 +219,7 @@ function RegisterForm() {
     setLoading(true);
     const { error } = await signUp(email, password, name);
     if (error) {
-      toast.error(error.message);
+      console.error("Sign up failed:", error); toast.error(getSafeErrorMessage(error));
     } else {
       toast.success("Check your email to confirm your account!");
     }

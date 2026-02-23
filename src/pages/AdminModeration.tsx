@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Shield, CheckCircle2, XCircle, Eye, Clock, User, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/errorHandler";
 
 interface ContentItem {
   id: string;
@@ -63,7 +64,7 @@ export default function AdminModeration() {
 
   async function updateStatus(id: string, status: "approved" | "rejected") {
     const { error } = await supabase.from("expert_content").update({ status }).eq("id", id);
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (error) { console.error("Update status failed:", error); toast({ title: "Error", description: getSafeErrorMessage(error), variant: "destructive" }); return; }
     toast({ title: status === "approved" ? "Content approved!" : "Content rejected" });
     setPreviewItem(null);
     await loadContent();

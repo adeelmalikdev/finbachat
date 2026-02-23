@@ -14,6 +14,7 @@ import { Users, Search, Shield, ShieldCheck, User, Mail, Calendar, Trash2 } from
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { getSafeErrorMessage } from "@/lib/errorHandler";
 
 interface UserProfile {
   id: string;
@@ -78,7 +79,8 @@ export default function AdminUsers() {
       role: role as "user" | "expert" | "admin",
     });
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error("Add role failed:", error);
+      toast({ title: "Error", description: getSafeErrorMessage(error), variant: "destructive" });
       return;
     }
     toast({ title: `Role "${role}" added` });
@@ -95,7 +97,8 @@ export default function AdminUsers() {
   async function removeRole(roleId: string, userId: string) {
     const { error } = await supabase.from("user_roles").delete().eq("id", roleId);
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error("Remove role failed:", error);
+      toast({ title: "Error", description: getSafeErrorMessage(error), variant: "destructive" });
       return;
     }
     toast({ title: "Role removed" });

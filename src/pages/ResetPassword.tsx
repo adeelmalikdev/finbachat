@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { getSafeErrorMessage } from "@/lib/errorHandler";
 import { Eye, EyeOff, Lock } from "lucide-react";
 
 export default function ResetPassword() {
@@ -41,7 +42,7 @@ export default function ResetPassword() {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      toast.error(error.message);
+      console.error("Password reset failed:", error); toast.error(getSafeErrorMessage(error));
     } else {
       toast.success("Password updated successfully!");
       navigate("/dashboard");
