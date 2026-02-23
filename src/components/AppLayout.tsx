@@ -2,6 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import { BaselineNudgeBar } from "./BaselineNudgeBar";
 
 export function AppLayout() {
   const { user, loading } = useAuth();
@@ -28,6 +29,7 @@ export function AppLayout() {
             <Outlet />
           </div>
         </main>
+        <BaselineNudgeBar />
       </div>
     </SidebarProvider>
   );
